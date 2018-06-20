@@ -3,11 +3,16 @@ Code that constructs MacP(r,n)
 
 Introduction
 
+This is a documentation for the computer program written in the programming language C that finds all vertices of MacPhersonians, thus all oriented matroids of a given rank and on a given number of elements. The largest parameters it has been run on are rank $r=3$ and number of elements $n=7$. Note that this version of the code works only for parameters $n$ and $r$ such that $\binom{n}{r} \leq 64$. 
+%it takes a few weeks of computer power (on a single core) to finish - computed on allegro at FU Berlin
+
+Here we make use of representatives of reorientation classes of oriented matroids found by Finschi \cite{Fin}. For every uniform oriented matroid $\M$ presented in \cite{Fin}, we find all oriented matroids $\M'$ such that $\M \wm \M'$, i.e., such that $\M$ weakly maps to $\M'$. This is done by checking for each subset of bases of $\M$ whether it satisfies the chirotope axioms \cite[Def.~3.5.3~\&~Lemma~3.5.4]{BLSWZ}. In the end, we construct all oriented matorids that are obtained from such oriented matroids $\M'$ by permuting and reorienting its elements. As a result, we obtain all oriented matroids of rank $r$ on $n$ elements.
+
 This is a documentation for the computer program written in the programming
 language C that finds all vertices of MacPhersonians, thus all oriented matroids of a
 given rank and on a given number of elements. The largest parameters it has been
-run on are rank r = 3 and number of elements n = 7.  Note that this version of the
-code works only for parameters n and r such that nr ≤ 64.
+run on are rank r = 3 and number of elements n = 7. Note that this version of the
+code works only for parameters n and r such that \binom{n}{r} ≤ 64, but simple adjustment can be applied in order to run it for larger parameters (which is computationally very challenging).
 Here we make use of representatives of reorientation classes of oriented matroids
 found by Finschi [2]. For every uniform oriented matroid M presented in [2], we
 find all oriented matroids M 0 such that M
