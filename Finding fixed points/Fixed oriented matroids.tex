@@ -1,0 +1,172 @@
+\documentclass[11pt,twoside,a4paper]{article}
+\usepackage[latin1]{inputenc}
+%\renewcommand{\baselinestretch}{1.5} 
+
+\usepackage[inner=4cm,outer=3cm]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{enumerate}
+\usepackage{tikz}
+
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{subfigure}
+
+\usepackage[numbers]{natbib}
+
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{multirow}
+
+\usepackage{listings}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.95,0.95,0.95}
+\lstset{
+backgroundcolor=\color{lbcolor},
+    tabsize=4,    
+%   rulecolor=,
+    language=[GNU]C++,
+        basicstyle=\scriptsize,
+        upquote=true,
+        aboveskip={1.5\baselineskip},
+        columns=fixed,
+        showstringspaces=false,
+        extendedchars=false,
+        breaklines=true,
+        prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+        frame=single,
+        numbers=left,
+        showtabs=false,
+        showspaces=false,
+        showstringspaces=false,
+        identifierstyle=\ttfamily,
+        keywordstyle=\color[rgb]{0,0,1},
+        commentstyle=\color[rgb]{0.026,0.112,0.095},
+        stringstyle=\color[rgb]{0.627,0.126,0.941},
+        numberstyle=\color[rgb]{0.205, 0.142, 0.73},
+%        \lstdefinestyle{C++}{language=C++,style=numbers}’.
+}
+\lstset{
+    backgroundcolor=\color{lbcolor},
+    tabsize=4,
+  language=C,
+  captionpos=b,
+  tabsize=4,
+  frame=lines,
+  numbers=left,
+  numberstyle=\tiny,
+  numbersep=5pt,
+  breaklines=true,
+  showstringspaces=false,
+  basicstyle=\footnotesize,
+%  identifierstyle=\color{magenta},
+  keywordstyle=\color[rgb]{0,0.2,0.1},
+  commentstyle=\color[rgb]{0,0,0.6},
+  stringstyle=\color{magenta}
+  }
+
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+
+
+\newcommand{\om}{\widetilde{\operatorname{MacP}}}
+\newcommand{\m}{\operatorname{MacP}}
+
+
+\renewcommand{\L}{\mathcal{L}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\B}{\mathcal{B}}
+\renewcommand{\S}{\mathbb{S}}
+
+\newcommand{\wm}{\rightsquigarrow}
+
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}%[section]
+\newtheorem{exmp}[defn]{Example}
+\newtheorem{rmrk}[defn]{Remark}
+\newtheorem{conj}[defn]{Conjecture}
+\newtheorem{pr}[defn]{Problem}
+
+\theoremstyle{plain}
+\newtheorem{lemma}[defn]{Lemma}
+\newtheorem{thm}[defn]{Theorem}
+\newtheorem{cor}[defn]{Corollary}
+\newtheorem{prop}[defn]{Proposition}
+
+
+\title{Documentation for the computer program that finds all oriented matroids of a given rank and number of elements}
+\author{Nevena Pali\'c}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This is a documentation for the computer program written in the programming language C that finds all vertices of MacPhersonians, thus all oriented matroids of a given rank and on a given number of elements. The largest parameters it has been run on are rank $r=3$ and number of elements $n=7$. Note that this version of the code works only for parameters $n$ and $r$ such that $\binom{n}{r} \leq 64$. 
+%it takes a few weeks of computer power (on a single core) to finish - computed on allegro at FU Berlin
+
+Here we make use of representatives of reorientation classes of oriented matroids found by Finschi \cite{Fin}. For every uniform oriented matroid $\M$ presented in \cite{Fin}, we find all oriented matroids $\M'$ such that $\M \wm \M'$, i.e., such that $\M$ weakly maps to $\M'$. This is done by checking for each subset of bases of $\M$ whether it satisfies the chirotope axioms \cite[Def.~3.5.3~\&~Lemma~3.5.4]{BLSWZ}. In the end, we construct all oriented matorids that are obtained from such oriented matroids $\M'$ by permuting and reorienting its elements. As a result, we obtain all oriented matroids of rank $r$ on $n$ elements.
+
+\section{The code}
+
+The main object that we consider is an oriented matroid. For fixed integers $r$ and $n$ with properties $n\geq r \geq 2$, we work with rank $r$ oriented matroids on the set of elements $[n]=\{1,2,\dots,n\}$. Note that the parameters $r$ and $n$ usually do not get changed during the run of one code. Every oriented matroid gets encoded as a chirotope. Since there are always two chirotopes that correspond to each oriented matroid, we work with the one whose lexicographically largest basis is positive. This is just a way to avoid storing both chirotopes for one oriented matroid, but it is not essential in the code. 
+
+In the code the rank is stored in the variable \texttt{R} and the number of elements is stored in the variable \texttt{N}.
+
+Oriented matroids are stored as chirotopes, presented by two $B$-tuples whose entries can be only 0 and 1, where $B=\binom{n}{r}$, the number of bases $(a_1,a_2\dots,a_r)$ such that $a_1<a_2<\dots<a_r$. Since chirotopes are alternating functions, these bases suffice to recover the whole chirotope. The first tuple encodes the bases that are positive and the second tuple encodes the bases that are negative in the given chirotope. In particular, it cannot happen that both tuples have at the same position the entry 1. 
+%In the code oriented matroids are given by the following structure.
+%\begin{lstlisting}[language=C]
+%	struct OM
+%	{
+%		unsigned int *plus;
+%		unsigned int *minus;
+%	};
+%\end{lstlisting}
+
+The first 32 entries of the tuple that encodes the positive bases are stored in \texttt{plus[0]}, the next 32 entries are stored in \texttt{plus[1]}, etc. Similarly the first 32 entries of the tuple that encode negative bases are stored in \texttt{minus[0]}, and so on.
+
+
+Most of the code is written in the library \texttt{OMs.c}, which contains all necessary functions for dealing with oriented matroids. The code is given in the following files
+\begin{itemize}
+\item \texttt{OMs.c}
+\item \texttt{translate\_Finschi\_representatives.c}
+\item \texttt{lower\_cones.c}
+\item \texttt{find\_all\_OMs.c}
+\end{itemize}
+
+
+\subsection{\texttt{translate\_Finschi\_representatives.c}}
+
+We first run this code in order to store representatives of uniform oriented matroids given in \cite{Fin} in the form that is used in the rest of the program. Note that the order of bases of oriented matroids given in \cite{Fin} differs from the order that we use.
+
+
+
+\subsection{\texttt{lower\_cones.c}}
+
+This code gets an input argument \texttt{step} (in order to be runnable in parallel), and finds all oriented matroids in the lower cone (thus weak images) of the \texttt{step}-th oriented matroid $\M$ from the list of uniform representatives. The function makechirotopes() checks for every subset of the bases of $\M$ whether it satisfies the chirotope axioms. The output are text files that contain representatives of reorientation/permutation classes of all oriented matroids of rank $r$ on $n$ elements. The representatives are not chosen to be unique. 
+
+
+\subsection{\texttt{find\_all\_OMs.c}}
+
+This code takes representatives of oriented matroids of rank $r$ on $n$ elements constructed by \texttt{lower\_cones.c} and makes all oriented matroids of rank $r$ on $n$ elements by permuting and reorienting elements. The output are text files that give all oriented matroids, sorted by the number of bases, each oriented matroid appears exactly once.
+
+\bibliographystyle{plain}
+\bibliography{mybib} 
+
+
+\end{document}
