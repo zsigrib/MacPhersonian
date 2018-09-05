@@ -1,4 +1,4 @@
-# MacPhersonian
+# Oriented matroid Grassmannians or MacPhersonians
 Code that constructs MacP(r,n)
 
 Introduction
