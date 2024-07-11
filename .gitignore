@@ -1,1 +1,6 @@
+# Local configuration files and caches
 __pycache__/
+out/
+.vscode/
+# Data files too large to commit
+resources/matroid_sets/
