@@ -4,3 +4,7 @@ out/
 .vscode/
 # Data files too large to commit
 resources/matroid_sets/
+# Legacy files, exes:
+*.c
+*.h
+*.exe
