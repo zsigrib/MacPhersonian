@@ -6,13 +6,14 @@
 // HELPERS 
 // =======
 
-constexpr int count_1bits(uint32_t x)
+constexpr int count_1bits(uint32_t n)
 {
-    x = x - ((x >> 1) & 0x55555555);
-    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-    x = x + (x >> 8);
-    x = x + (x >> 16);
-    return x & 0x0000003F;
+    n = (((uint32_t)0xaaaaaaaa & n) >> 1) + ((uint32_t)0x55555555 & n);
+    n = (((uint32_t)0xcccccccc & n) >> 2) + ((uint32_t)0x33333333 & n);
+    n = (((uint32_t)0xf0f0f0f0 & n) >> 4) + ((uint32_t)0x0f0f0f0f & n);
+    n = (((uint32_t)0xff00ff00 & n) >> 8) + ((uint32_t)0x00ff00ff & n);
+    n = (((uint32_t)0xffff0000 & n) >> 16) + ((uint32_t)0x0000ffff & n);
+    return n;
 }
 
 // =============
