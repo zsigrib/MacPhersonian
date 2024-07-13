@@ -1,13 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <format>
 #include "mymath.hpp"
 #include "OMs.hpp"
 #include "OM_IO.hpp"
 
-// ======================
-// ReadChirotopesFromFile
-// ======================
+// ==================
+// ReadOMDataFromFile
+// ==================
 
 std::ifstream& ignore_n_lines(std::ifstream& fs, size_t ignored_lines) {
     std::string ignore_this_str;
@@ -22,8 +23,8 @@ std::ifstream& ignore_n_lines(std::ifstream& fs, size_t ignored_lines) {
     return fs;
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R,N>::ReadChirotopesFromFile
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>::ReadOMDataFromFile
 (std::string path_, int ignored_lines, bool exhausted_): 
 path(path_), file_stream(path_.c_str()), 
 file_found(file_stream.good()), ignore_first_n_lines(ignored_lines) {
@@ -34,34 +35,34 @@ file_found(file_stream.good()), ignore_first_n_lines(ignored_lines) {
         if (file_found) {
             ignore_n_lines(file_stream, ignored_lines);
         }
-        current_chirotope = load_next_chirotope();
+        current_value = load_next_value();
     }  
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R, N>::ReadChirotopesFromFile
-(const ReadChirotopesFromFile<R, N>& other):
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>::ReadOMDataFromFile
+(const ReadOMDataFromFile<StreamReadable>& other):
 path(other.path), file_stream(other.path.c_str()),
 file_found(file_stream.good()), ignore_first_n_lines(other.ignore_first_n_lines) {
     if (file_found != other.file_found) {
-        throw std::invalid_argument("Could not copy construct ReadChirotopesFromFiles, as the target file was created/destroyed since the creation of the original instance.");
+        throw std::invalid_argument("Could not copy construct ReadOMDataFromFiles, as the target file was created/destroyed since the creation of the original instance.");
     } else if (other.is_exhausted()) {
         exhausted = true;
     } else {
         exhausted = false;
         ignore_n_lines(file_stream, ignore_first_n_lines);
-        current_chirotope = load_next_chirotope();
-        while (!exhausted && current_chirotope != other.current_chirotope) {
-            current_chirotope = load_next_chirotope();
+        current_value = load_next_value();
+        while (!exhausted && current_value != other.current_value) {
+            current_value = load_next_value();
         }
         if (exhausted) {
-            throw std::invalid_argument("Could not copy construct ReadChirotopesFromFiles, because could not find current Chirotope of the original instance in the file.");
+            throw std::invalid_argument("Could not copy construct ReadOMDataFromFiles, because could not find current Chirotope of the original instance in the file.");
         }
     }
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R, N>& ReadChirotopesFromFile<R, N>::change_path(std::string new_path) {
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>& ReadOMDataFromFile<StreamReadable>::change_path(std::string new_path) {
     path = new_path;
     file_stream.close();
     file_stream.open(path.c_str());
@@ -70,86 +71,92 @@ ReadChirotopesFromFile<R, N>& ReadChirotopesFromFile<R, N>::change_path(std::str
     if (file_found) {
         ignore_n_lines(file_stream, ignore_first_n_lines);
     }
-    current_chirotope = load_next_chirotope();
+    current_value = load_next_value();
     return (*this);
 }
 
-template<int R, int N>
-Chirotope<R, N> ReadChirotopesFromFile<R, N>::load_next_chirotope() {
-    if (exhausted) return Chirotope<R, N>();
-    std::string next_line;
-    if (!std::getline(file_stream, next_line)) {
+template<typename StreamReadable>
+StreamReadable ReadOMDataFromFile<StreamReadable>::load_next_value() {
+    if (exhausted) return StreamReadable();
+    if (!(file_stream >> std::ws).good()) {
         exhausted = true;
-        return Chirotope<R, N>();
-    } else if (next_line.empty()) {
-        return load_next_chirotope();
+        return StreamReadable();
     } else {
-        return Chirotope<R,N>().read(next_line);
+        StreamReadable ret; file_stream >> ret;
+        return ret;
     }
 }
 
-template<int R, int N>
-constexpr int ReadChirotopesFromFile<R, N>::ignored_number_of_lines() const {
+template<typename StreamReadable>
+constexpr int ReadOMDataFromFile<StreamReadable>::ignored_number_of_lines() const {
     return ignore_first_n_lines;
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFile<R, N>::file_exists() const {
+template<typename StreamReadable>
+bool ReadOMDataFromFile<StreamReadable>::file_exists() const {
     return file_found;
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFile<R, N>::is_exhausted() const {
+template<typename StreamReadable>
+bool ReadOMDataFromFile<StreamReadable>::is_exhausted() const {
     return exhausted;
 }
 
-template<int R, int N>
-Chirotope<R, N> ReadChirotopesFromFile<R, N>::operator*() const {
-    return current_chirotope;
-}
-
-template<int R, int N>
-ReadChirotopesFromFile<R, N>& ReadChirotopesFromFile<R, N>::operator++() {
-    current_chirotope = load_next_chirotope();
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>& ReadOMDataFromFile<StreamReadable>::exhaust() {
+    exhausted = true;
     return (*this);
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFile<R, N>::operator==(const ReadChirotopesFromFile<R, N>& other) const {
+template<typename StreamReadable>
+StreamReadable ReadOMDataFromFile<StreamReadable>::operator*() const {
+    return current_value;
+}
+
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>& ReadOMDataFromFile<StreamReadable>::operator++() {
+    current_value = load_next_value();
+    return (*this);
+}
+
+template<typename StreamReadable>
+bool ReadOMDataFromFile<StreamReadable>::operator==
+(const ReadOMDataFromFile<StreamReadable>& other) const {
     return (exhausted && other.exhausted
         && (path == other.path) 
     ) || (!exhausted && !other.exhausted
         && (path == other.path)
-        && (current_chirotope == other.current_chirotope)
+        && (current_value == other.current_value)
     );
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFile<R, N>::operator!=(const ReadChirotopesFromFile<R, N>& other) const {
+template<typename StreamReadable>
+bool ReadOMDataFromFile<StreamReadable>::operator!=
+(const ReadOMDataFromFile<StreamReadable>& other) const {
     return (!exhausted || !other.exhausted
         || (path != other.path) 
     ) && (exhausted || other.exhausted
         || (path != other.path)
-        || (current_chirotope != other.current_chirotope)
+        || (current_value != other.current_value)
     );
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R, N>& ReadChirotopesFromFile<R, N>::begin() {
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>& ReadOMDataFromFile<StreamReadable>::begin() {
     return (*this);
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R, N> ReadChirotopesFromFile<R, N>::end() const {
-    return ReadChirotopesFromFile<R,N>(path, ignore_first_n_lines, true);
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable> ReadOMDataFromFile<StreamReadable>::end() const {
+    return ReadOMDataFromFile<StreamReadable>(path, ignore_first_n_lines, true);
 }
 
-// =======================
-// ReadChirotopesFromFiles
-// =======================
+// ===================
+// ReadOMDataFromFiles
+// ===================
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N>::ReadChirotopesFromFiles(
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable>::ReadOMDataFromFiles(
     std::string(*file_path_constructor)(int,int), 
     int ignored_number_of_lines,
     int number_of_bases_, 
@@ -157,20 +164,21 @@ ReadChirotopesFromFiles<R, N>::ReadChirotopesFromFiles(
 ):  number_of_bases(number_of_bases_),
     idx_of_file(idx_of_file_),
     path_constructor(file_path_constructor),
-    file_reader(file_path_constructor(number_of_bases_, idx_of_file_), ignored_number_of_lines)
+    file_reader(file_path_constructor(number_of_bases_, idx_of_file_), ignored_number_of_lines),
+    exhausted(false)
 {
     update_file_reader();
 }
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N>::ReadChirotopesFromFiles
-(const ReadChirotopesFromFiles& other):
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable>::ReadOMDataFromFiles
+(const ReadOMDataFromFiles& other, bool exhausted_):
 file_reader(other.path_constructor(other.number_of_bases, other.idx_of_file), other.ignored_number_of_lines()) {
+    exhausted = exhausted_;
     path_constructor = other.path_constructor;
-    if (other.is_exhausted()) {
-        number_of_bases = binomial_coefficient(N, R) + 1;
-        idx_of_file = 0;
-        update_file_reader();
+    if (other.is_exhausted() || exhausted_) {
+        number_of_bases = 0;
+        idx_of_file = -1;
     } else {
         number_of_bases = other.number_of_bases;
         idx_of_file = other.idx_of_file;
@@ -178,20 +186,25 @@ file_reader(other.path_constructor(other.number_of_bases, other.idx_of_file), ot
     }
 }
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N>::ReadChirotopesFromFiles
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable>::ReadOMDataFromFiles
 (std::string(*file_path_constructor)(int, int), int ignored_number_of_lines): 
 file_reader(file_path_constructor(1, 0), ignored_number_of_lines) {
+    exhausted = false;
     path_constructor = file_path_constructor;
     number_of_bases = 1;
     idx_of_file = 0;
     update_file_reader();
 }
 
-template<int R, int N>
-ReadChirotopesFromFile<R, N>& ReadChirotopesFromFiles<R, N>::update_file_reader() {
+template<typename StreamReadable>
+ReadOMDataFromFile<StreamReadable>& ReadOMDataFromFiles<StreamReadable>::update_file_reader() {
+    if (exhausted) return file_reader;
     file_reader.change_path(path_constructor(number_of_bases, idx_of_file));
-    if (file_reader.file_exists() || idx_of_file == 0) return file_reader;
+    if (file_reader.file_exists() || idx_of_file == 0) {
+        exhausted = !file_reader.file_exists();
+        return file_reader;
+    }
     idx_of_file = 0;
     number_of_bases++;
     file_reader.change_path(path_constructor(number_of_bases, idx_of_file));
@@ -199,26 +212,27 @@ ReadChirotopesFromFile<R, N>& ReadChirotopesFromFiles<R, N>::update_file_reader(
         number_of_bases++;
         file_reader.change_path(path_constructor(number_of_bases, idx_of_file));
     }
+    exhausted = !file_reader.file_exists();
     return file_reader;
 }
 
-template<int R, int N>
-constexpr bool ReadChirotopesFromFiles<R, N>::is_exhausted() const {
-    return !file_reader.file_exists();
+template<typename StreamReadable>
+constexpr bool ReadOMDataFromFiles<StreamReadable>::is_exhausted() const {
+    return exhausted;
 }
 
-template<int R, int N>
-constexpr int ReadChirotopesFromFiles<R, N>::ignored_number_of_lines() const {
+template<typename StreamReadable>
+constexpr int ReadOMDataFromFiles<StreamReadable>::ignored_number_of_lines() const {
     return file_reader.ignored_number_of_lines();
 }
 
-template<int R, int N>
-std::pair<int, Chirotope<R, N>> ReadChirotopesFromFiles<R, N>::operator*() const {
-    return std::pair<int, Chirotope<R, N>>(number_of_bases, *file_reader);
+template<typename StreamReadable>
+std::pair<int, StreamReadable> ReadOMDataFromFiles<StreamReadable>::operator*() const {
+    return std::pair<int, StreamReadable>(number_of_bases, *file_reader);
 }
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N>& ReadChirotopesFromFiles<R, N>::operator++() {
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable>& ReadOMDataFromFiles<StreamReadable>::operator++() {
     ++file_reader;
     if (file_reader.is_exhausted()) {
         idx_of_file++;
@@ -227,8 +241,8 @@ ReadChirotopesFromFiles<R, N>& ReadChirotopesFromFiles<R, N>::operator++() {
     return (*this);
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFiles<R, N>::operator==(const ReadChirotopesFromFiles& other) const {
+template<typename StreamReadable>
+bool ReadOMDataFromFiles<StreamReadable>::operator==(const ReadOMDataFromFiles& other) const {
     return (!is_exhausted() && !other.is_exhausted()
         && (number_of_bases == other.number_of_bases)
         && (idx_of_file == other.idx_of_file)
@@ -239,8 +253,8 @@ bool ReadChirotopesFromFiles<R, N>::operator==(const ReadChirotopesFromFiles& ot
     );
 }
 
-template<int R, int N>
-bool ReadChirotopesFromFiles<R, N>::operator!=(const ReadChirotopesFromFiles& other) const {
+template<typename StreamReadable>
+bool ReadOMDataFromFiles<StreamReadable>::operator!=(const ReadOMDataFromFiles& other) const {
     return (is_exhausted() || other.is_exhausted()
         || (number_of_bases != other.number_of_bases)
         || (idx_of_file != other.idx_of_file)
@@ -251,17 +265,15 @@ bool ReadChirotopesFromFiles<R, N>::operator!=(const ReadChirotopesFromFiles& ot
     );
 }
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N>& ReadChirotopesFromFiles<R, N>::begin() {
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable>& ReadOMDataFromFiles<StreamReadable>::begin() {
     return (*this);
 }
 
-template<int R, int N>
-ReadChirotopesFromFiles<R, N> ReadChirotopesFromFiles<R, N>::end() const {
-    return ReadChirotopesFromFiles<R, N>(
-        path_constructor,
-        file_reader.ignored_number_of_lines(),
-        binomial_coefficient(N, R) + 1,
-        0
+template<typename StreamReadable>
+ReadOMDataFromFiles<StreamReadable> ReadOMDataFromFiles<StreamReadable>::end() const {
+    return ReadOMDataFromFiles<StreamReadable>(
+        *this,
+        true
     );
 }

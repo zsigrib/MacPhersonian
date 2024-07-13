@@ -6,21 +6,22 @@
 #include "OMs.hpp"
 
 // ============================
-// ReadChirotopesFromFile<R, N>
+// ReadOMDataFromFile<R, N>
 // ============================
 
-// Reads all chirotopes in a given file, assuming each chirotope
-// occupies a full line, ignoring empty lines and the first few
-// lines as specified by the user. Usage:
+// Reads a collection of (whitespace separated) data entries from a file,
+// assuming the typename `StreamReadable` is a type which can be read into 
+// using the `>>` operator, and which can be default constructed.
+// The first few lines are skipped, as specified by the user. Usage:
 // ```
-// for (Chirotope<R, N> p : ReadChirotopesFromFile<R,N>("path/to/file", ig)) {
+// for (StreamReadable p : ReadOMDataFromFile<StreamReadable>("path/to/file", ig)) {
 //     /* USER CODE*/
 // }
 // ```
 // where the first `ig` lines of the given file will be ignored.
-template<int R, int N>
-struct ReadChirotopesFromFile {
-    using value_type = Chirotope<R, N>;
+template<typename StreamReadable>
+struct ReadOMDataFromFile {
+    using value_type = StreamReadable;
     
     private:
     std::string path;
@@ -28,29 +29,31 @@ struct ReadChirotopesFromFile {
     std::ifstream file_stream;
     bool file_found;
     bool exhausted;
-    Chirotope<R, N> current_chirotope;
+    StreamReadable current_value;
 
     public:
-    ReadChirotopesFromFile(std::string path, int ignored_lines, bool exhausted_=false);
-    ReadChirotopesFromFile(const ReadChirotopesFromFile&);
+    ReadOMDataFromFile(std::string path, int ignored_lines, bool exhausted_=false);
+    ReadOMDataFromFile(const ReadOMDataFromFile&);
 
-    ReadChirotopesFromFile& change_path(std::string);
-    Chirotope<R, N> load_next_chirotope();
+    ReadOMDataFromFile& change_path(std::string);
+    StreamReadable load_next_value();
     constexpr int ignored_number_of_lines() const;
     bool file_exists() const;
     bool is_exhausted() const;
-    Chirotope<R,N> operator*() const;
-    ReadChirotopesFromFile& operator++();
-    bool operator==(const ReadChirotopesFromFile&) const;
-    bool operator!=(const ReadChirotopesFromFile&) const;
-    ReadChirotopesFromFile& begin();
-    ReadChirotopesFromFile end() const;
+    ReadOMDataFromFile& exhaust();
+    StreamReadable operator*() const;
+    ReadOMDataFromFile& operator++();
+    bool operator==(const ReadOMDataFromFile&) const;
+    bool operator!=(const ReadOMDataFromFile&) const;
+    ReadOMDataFromFile& begin();
+    ReadOMDataFromFile end() const;
 };
 
 // =============================
-// ReadChirotopesFromFiles<R, N>
+// ReadOMDataFromFiles<R, N>
 // =============================
 
+// THIS DESCRIPTION IS INCORRECT.
 // Reads all chirotopes in a given collection of files.
 //
 // The files must be as follows. All chirotopes in a given
@@ -61,7 +64,7 @@ struct ReadChirotopesFromFile {
 // 0 chirotopes. There may be multiple files which contain
 // chirotopes with the same number of bases.
 //
-// To construct an instance of `ReadChirotopesFromFiles`,
+// To construct an instance of `ReadOMDataFromFiles`,
 // a function pointer `std::str (*)(int n_bases, int idx)`
 // must be specified, which constructs the path of the
 // `idx`th file which contains chirotopes with `n_bases`
@@ -76,7 +79,7 @@ struct ReadChirotopesFromFile {
 //
 // Usage:
 // ```
-// for (std::pair<int, Chirotope<R, N>> p : ReadChirotopesFromFiles<R,N>
+// for (std::pair<int, Chirotope<R, N>> p : ReadOMDataFromFiles<R,N>
 // (&path_generating_function, ig)) {
 //     /* USER CODE*/
 // }
@@ -88,36 +91,36 @@ struct ReadChirotopesFromFile {
 //   in each file,
 // - `p.first` is the number of bases of `p.second`; it is non-decreasing,
 // - `p.second` is the next chirotope read from the file structure.
-template<int R, int N>
-struct ReadChirotopesFromFiles {
-    using value_type = Chirotope<R, N>;
+template<typename StreamReadable>
+struct ReadOMDataFromFiles {
+    using value_type = StreamReadable;
 
     private:
     std::string (*path_constructor)(int, int);
     int number_of_bases;
     int idx_of_file;
-    ReadChirotopesFromFile<R, N> file_reader;
+    bool exhausted;
+    ReadOMDataFromFile<StreamReadable> file_reader;
 
-    ReadChirotopesFromFiles(std::string(*)(int,int), int, int, int);
+    ReadOMDataFromFiles(std::string(*)(int,int), int, int, int);
 
     public:
-    ReadChirotopesFromFiles(const ReadChirotopesFromFiles&);
+    ReadOMDataFromFiles(const ReadOMDataFromFiles&, bool exhausted_ = false);
 
-    ReadChirotopesFromFiles(std::string(*)(int, int), int);
+    ReadOMDataFromFiles(std::string(*)(int, int), int);
     
-    ReadChirotopesFromFile<R, N>& update_file_reader();
+    ReadOMDataFromFile<StreamReadable>& update_file_reader();
     std::ifstream& get_file_stream();
     constexpr bool is_exhausted() const;
     constexpr int ignored_number_of_lines() const;
-    Chirotope<R, N> load_next_chirotope();
     
-    std::pair<int, Chirotope<R, N>> operator*() const;
-    ReadChirotopesFromFiles& operator++();
-    bool operator==(const ReadChirotopesFromFiles&) const;
-    bool operator!=(const ReadChirotopesFromFiles&) const;
+    std::pair<int, StreamReadable> operator*() const;
+    ReadOMDataFromFiles& operator++();
+    bool operator==(const ReadOMDataFromFiles&) const;
+    bool operator!=(const ReadOMDataFromFiles&) const;
 
-    ReadChirotopesFromFiles& begin();
-    ReadChirotopesFromFiles end() const;
+    ReadOMDataFromFiles& begin();
+    ReadOMDataFromFiles end() const;
 };
 
 #include "OM_IO.cpp"

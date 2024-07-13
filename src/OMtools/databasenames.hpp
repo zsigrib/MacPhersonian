@@ -26,4 +26,10 @@ std::string OM_set<3,7>(int n_bases, int idx) {
     return std::format("../../../resources/oriented_matroid_sets/r3n7/OMs_rank3_7elements_{0}bases_part{1}.txt", n_bases, idx + 1);
 }
 
+template<int R, int N>
+std::string matroid_set(int n_bases, int idx) {
+    if (idx != 0) return "";
+    return std::format("../../../resources/matroid_sets/r{0}n{1}/{2}_bases_all.txt", R, N, n_bases);
+} 
+
 }

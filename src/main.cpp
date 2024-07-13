@@ -6,7 +6,7 @@
 
 
 #define R0 3
-#define N0 6
+#define N0 9
 
 // PROGRAM
 
@@ -14,7 +14,7 @@ int program__compute_fvector_of_MacP()
 {
 if (!((R0 == 3 && N0 == 6) || (R0 == 3 && N0 == 7)))
     throw std::logic_error("Incorrect compilation! This function must be compiled with parameters (3,6) or (3,7)!");
-auto input = ReadChirotopesFromFiles<R0,N0>(
+auto input = ReadOMDataFromFiles<Chirotope<R0,N0>>(
     &database_names::OM_set<R0,N0>,
     6
 );
@@ -87,14 +87,16 @@ if ((R0 != 3) || (N0 != 9))
     throw std::logic_error("Incorrect compilation! This function must be compiled with parameters (3,9)!");
 std::vector<std::vector<Chirotope<R0,N0>>> fixed_OMs_by_bases
 (binomial_coefficient(N0, R0), std::vector<Chirotope<R0,N0>>());
-auto input = ReadChirotopesFromFile<R0,N0>(
+auto input = ReadOMDataFromFile<Chirotope<R0,N0>>(
     "../../../resources/fixed_oriented_matroid_sets/fixed_OMs_rank3_9elements_group_Z3.txt",
     6
 );
+int count = 0;
 auto JRG = OMexamples::JRG();
 for (auto p: input) {
     int base_count = p.countbases();
     fixed_OMs_by_bases[base_count - 1].push_back(p);
+    count++;
 }
 std::vector<Chirotope<R0,N0>> all_fixed_OMs;
 std::vector<int> base_counts;
@@ -121,10 +123,10 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
         base_counts.push_back(base_count);
         smaller_OM_indices.push_back(weak_images);
         lower_cone_face_vectors.push_back(f_vector);
-        /*if (c == JRG) {
+        if (c == JRG) {
             std::cout << "Euler characteristic of JRG: " << euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) 
             << ", mod 3:" <<  euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) % 3 << "\n";
-        }*/
+        }
     }
     std::cout << "# of non 1 (mod 3) Euler-characteristic lower cones: "
     << non_contr << "/" << fixed_OMs_by_bases[b].size() << " (# of bases: "
@@ -140,7 +142,8 @@ return 0;
 
 }
 
+
 int main() 
 {
-    return program__compute_fvector_of_MacP();
+    return program__compute_euler_char_of_JRG_mod_3();
 }
