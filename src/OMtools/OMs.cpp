@@ -1204,6 +1204,11 @@ constexpr bool Chirotope<R, N>::b2prime(char sign, const std::array<char,R>& X, 
 	int s1,s2,in1,in2,i,j,q,sx,sy;
 	std::array<char,R> x;
 	std::array<char,R> y;
+	if (X[0] == 1 && X[1] == 0 && X[2] == 2
+	&& Y[0] == 0 && Y[1] == 2 && Y[2] == 3) {
+		//std::cout << "!!!\n";
+	}
+		
 
 	// Bálint: what's the point of this?
 	for (i=0;i<R;i++)
@@ -1271,7 +1276,7 @@ constexpr bool Chirotope<R, N>::axB2(char sign, char s1, char s2, int in1, int i
 			M2.minus[i]=M.minus[i];
 		}*/		
 	else						//if sign(y1,x2,x3)=-1, then we have to switch the signs of the bases (chirotopes are alternating)
-		M1 = inverse();
+		M2 = inverse();
 		/*for (i=0;i<nr_ints;i++)
 		{
 			M2.plus[i]=M.minus[i];

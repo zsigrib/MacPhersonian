@@ -2,11 +2,12 @@
 #include <vector>
 #include <array>
 #include <format>
+#include <random>
 #include "OMtools.hpp"
 
 
 #define R0 3
-#define N0 9
+#define N0 6
 
 // PROGRAM
 
@@ -123,10 +124,10 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
         base_counts.push_back(base_count);
         smaller_OM_indices.push_back(weak_images);
         lower_cone_face_vectors.push_back(f_vector);
-        if (c == JRG) {
+        /*if (c == JRG) {
             std::cout << "Euler characteristic of JRG: " << euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) 
             << ", mod 3:" <<  euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) % 3 << "\n";
-        }
+        }*/
     }
     std::cout << "# of non 1 (mod 3) Euler-characteristic lower cones: "
     << non_contr << "/" << fixed_OMs_by_bases[b].size() << " (# of bases: "
@@ -142,9 +143,114 @@ return 0;
 
 }
 
+// PROGRAM
+int program__verify_ischirotope_port() 
+{
+
+if ((R0 != 3) || (N0 != 6))
+    throw std::logic_error("Incorrect compilation! This function must be compiled with parameters (3,6)!");
+auto input = ReadOMDataFromFiles<Chirotope<R0,N0>>(
+    database_names::OM_set<R0,N0>,
+    6
+);
+std::vector<std::vector<Chirotope<R0,N0>>> all_OMs_by_bases(
+    binomial_coefficient(N0,R0),
+    std::vector<Chirotope<R0,N0>>()
+);
+int count = 0;
+int last_basecount = 0;
+for (auto p: input) {
+    // PARSE
+    all_OMs_by_bases[p.first - 1].push_back(p.second);
+    if (!p.second.is_chirotope()) {
+        std::cout << "(;_;) Found a chirotope in the database for which"
+        " is_chirotope() evaluates to false: \n" << p.second << "\n";
+        for (int r = 0; r < R0; r++) {
+            for (int i = 0; i < binomial_coefficient(N0, R0); i++) {
+                std::cout << Chirotope<R0,N0>::RTUPLES_LIST::array[i][r];
+            }
+            std::cout << "\n";
+        }
+        return 1;
+    }
+    // PRINT
+    if (last_basecount != p.first) {
+        std::cout << "Finished with OMs with " << last_basecount
+        << " bases. Running total: " << count << "\n";
+        last_basecount = p.first;
+    }
+    count++;
+}
+std::cout << "(OuO) Success!! All chirotopes in the database are "
+"recognised as chirotopes by the program.\n";
+while (true) {
+    Chirotope<R0,N0> chi;
+    std::cout << "                   ";
+    for (int x = 0; x < binomial_coefficient(N0,R0); x++) {
+        std::cout << "_";
+    }
+    std::cout << "\n";
+    std::cout << "Enter a chirotope: ";
+    try {
+        std::cin >> chi;
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "That was not a valid chirotope.\n";
+        break;
+    }
+    bool is_in_database = false;
+    for (auto c : all_OMs_by_bases[chi.countbases() - 1]) {
+        if (c.is_same_OM_as(chi)) {
+            is_in_database = true;
+            break;
+        }
+    }
+    std::cout << "--- is_chirotope() == " << chi.is_chirotope() << "\n";
+    std::cout << "--- is_in_database == " << is_in_database << "\n";
+}
+
+size_t TESTS = 100000;
+std::cout << "Now testing " << TESTS << " random functions if they are chirotopes...\n";
+size_t was_chirotope = 0;
+std::random_device dev;
+std::mt19937 rng(dev());
+const char CHARS[3] {'0','-','+'};
+std::uniform_int_distribution<std::mt19937::result_type> dist3(0,2);
+for (auto i = 0; i < TESTS; i++) {
+    Chirotope<R0,N0> c;
+    for (auto idx = 0; idx < binomial_coefficient(N0,R0); idx++) {
+        c.set(idx, CHARS[dist3(rng)]);
+    }
+    bool is_in_database = false;
+    for (auto c2 : all_OMs_by_bases[c.countbases() - 1]) {
+        if (c2.is_same_OM_as(c)) {
+            is_in_database = true;
+            break;
+        }
+    }
+    if (c.is_chirotope() != is_in_database) {
+        std::cout << "(;_;) Found a chirotope in the database for which"
+        " is_chirotope() != is_in_database: \n" << c << "\n";
+        for (int r = 0; r < R0; r++) {
+            for (int i = 0; i < binomial_coefficient(N0, R0); i++) {
+                std::cout << Chirotope<R0,N0>::RTUPLES_LIST::array[i][r];
+            }
+            std::cout << "\n";
+        }
+        std::cout << "--- is_chirotope() == " << c.is_chirotope() << "\n";
+        std::cout << "--- is_in_database == " << is_in_database << "\n";
+        return 1;
+    }
+    if (is_in_database) was_chirotope++;
+}
+std::cout << "All tests passed successfully. There were "
+<< was_chirotope << "/" << TESTS << " functions which were chirotopes.\n";
+return 0;
+
+}
 
 int main() 
 {
-    std::cout << Chirotope<3,6>("+0000000000000000000").is_chirotope();
-    return 0;
+    return program__verify_ischirotope_port();
 }
