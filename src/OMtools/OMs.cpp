@@ -282,14 +282,15 @@ constexpr void Chirotope<R, N>::set(int idx, char c) {
 }
 
 template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::restrict_to_matroid
+constexpr Chirotope<R, N> Chirotope<R, N>::restrict_to_matroid
 (const Matroid<R, N>& matroid) const {
+	Chirotope<R, N> ret(*this);
     for (auto i = 0; i < NR_INT32; i++) {
-        plus[i] &= matroid.char_vector[i];
-        minus[i] &= matroid.char_vector[i];
+        ret.plus[i] &= matroid.char_vector[i];
+        ret.minus[i] &= matroid.char_vector[i];
 
     }
-    return (*this);
+    return ret;
 }
 
 template<int R, int N>

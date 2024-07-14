@@ -232,7 +232,7 @@ struct Chirotope
     // Set this chirotope to `0` on all non-bases of the given matroid.
     // Note that the resulting object might not satisfy the chirotope
     // axioms. 
-    constexpr Chirotope& restrict_to_matroid(const Matroid<R, N>&) const;
+    constexpr Chirotope restrict_to_matroid(const Matroid<R, N>&) const;
 
     // Returns `true` if this chirotope is constant zero.
     constexpr bool is_zero() const;

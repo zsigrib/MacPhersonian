@@ -3,11 +3,14 @@
 #include <array>
 #include <format>
 #include <random>
+#include <algorithm>
 #include "OMtools.hpp"
 
 
 #define R0 3
 #define N0 6
+
+
 
 // PROGRAM
 
@@ -80,6 +83,8 @@ std::cout << ")";
 return 0;
 }
 
+
+
 // PROGRAM
 
 int program__compute_euler_char_of_JRG_mod_3()
@@ -143,7 +148,10 @@ return 0;
 
 }
 
+
+
 // PROGRAM
+
 int program__verify_ischirotope_port() 
 {
 
@@ -250,7 +258,145 @@ return 0;
 
 }
 
+
+
+template<int R, int N>
+std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(const Chirotope<R, N>& top)
+{
+
+std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
+    binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
+);
+
+auto input = ReadOMDataFromFiles<Matroid<R,N>>(
+    database_names::matroid_set<R,N>, 0
+);
+
+std::cout << "Generating lower cone of " << top << "...\n\n";
+int last_basecount = 0;
+int total = 0;
+int matroids_with_fixed_basecount = 0;
+int count_of_wmi = 0;
+int count_of_wmi_with_fixed_basecount = 0;
+for (auto p : input) {
+    // PRINT
+    if (p.first != last_basecount) {
+        std::cout << "Finished parsing matroids with "
+        << last_basecount << " bases.\n";
+        std::cout << "--- There were " << count_of_wmi_with_fixed_basecount 
+        << "/" << matroids_with_fixed_basecount << " weak map images for this basecount\n";
+        std::cout << "--- There are " << count_of_wmi << "/"
+        << total << " weak map images in total so far.\n";
+        matroids_with_fixed_basecount = 0;
+        count_of_wmi_with_fixed_basecount = 0;
+        last_basecount = p.first;
+    }
+    // PARSE
+    auto restriced = top.restrict_to_matroid(p.second);
+    if (top.weak_maps_to(p.second) && restriced.is_chirotope()) {
+        count_of_wmi++;
+        count_of_wmi_with_fixed_basecount++;
+        all_wmis_by_basecount[p.first - 1].push_back(restriced);
+    }
+    // INCREMENT
+    matroids_with_fixed_basecount++;
+    total++;
+}
+std::cout << "Finished parsing matroids with "
+<< last_basecount << " bases.\n";
+std::cout << "--- There were " << count_of_wmi_with_fixed_basecount 
+<< "/" << matroids_with_fixed_basecount << " weak map images for this basecount.\n";
+std::cout << "--- There are " << count_of_wmi << "/"
+<< total << " weak map images in total so far.\n";
+std::cout << "Generation of the lower cone of " << top << " is complete.\n";
+return all_wmis_by_basecount;
+
+}
+
+
+
+// Reads all OMs of the given rank and number of elements, and selects
+// only those which fall inside the given lower cone.
+template<int R, int N>
+std::vector<std::vector<Chirotope<R, N>>> filter_lower_cone(const Chirotope<R, N>& top) 
+{
+
+std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
+    binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
+);
+
+auto input = ReadOMDataFromFiles<Chirotope<R, N>>(
+    database_names::OM_set<R, N>, 6
+);
+
+std::cout << "Reading all OMs with R = " << R << " and N = " << N
+<< ", and keeping those which are in the lower cone of " << top
+<< "...\n\n";
+int last_basecount = 0;
+int total = 0;
+int OMs_with_fixed_basecount = 0;
+int count_of_wmi = 0;
+int count_of_wmi_with_fixed_basecount = 0;
+for (auto p : input) {
+    // PRINT
+    if (last_basecount != p.first) {
+        std::cout << "Finished parsing OMs with " << last_basecount
+        << " bases.\n";
+        std::cout << "--- There were " << count_of_wmi_with_fixed_basecount
+        << "/" << OMs_with_fixed_basecount << " weak map images for this basecount.\n";
+        std::cout << "--- There are " << count_of_wmi << "/"
+        << total << " weak map images in total so far.\n";
+        last_basecount = p.first;
+        OMs_with_fixed_basecount = 0;
+        count_of_wmi_with_fixed_basecount = 0;
+    }
+    // PARSE
+    if (top.OM_weak_maps_to(p.second)) {
+        count_of_wmi++;
+        count_of_wmi_with_fixed_basecount++;
+        all_wmis_by_basecount[p.first - 1].push_back(p.second);
+    }
+    // INCREMENT
+    total++;
+    OMs_with_fixed_basecount++;
+}
+std::cout << "Finished parsing OMs with " << last_basecount
+<< " bases.\n";
+std::cout << "--- There were " << count_of_wmi_with_fixed_basecount
+<< "/" << OMs_with_fixed_basecount << " weak map images for this basecount.\n";
+std::cout << "--- There are " << count_of_wmi << "/"
+<< total << " weak map images in total so far.\n";
+std::cout << "Filtering of the lower cone of " << top << " is complete.\n";
+return all_wmis_by_basecount;
+
+}
+
+
+
+// PROGRAM
+
+template<int R, int N>
+int program__test_lower_cone_generation(const Chirotope<R, N>& top) {
+    auto LC_generated = generate_lower_cone(top);
+    std::cout << "\n===============\n\n";
+    auto LC_filtered = filter_lower_cone(top);
+    std::cout << "Comparing results...\n";
+    for (auto b = 0; b < binomial_coefficient(N, R); b++) {
+        if (LC_generated[b].size() != LC_filtered[b].size()) {
+            std::cout << "(;_;) The two algorithms didn't agree on the "
+            "number of weak map images with " << b+1 << " bases:\n";
+            std::cout << "--- generate_lower_cone() said " << LC_generated[b].size() << "\n";
+            std::cout << "--- filter_lower_cone() said   " << LC_filtered[b].size() << "\n";
+            return 1;
+        }
+    }
+    std::cout << "(OuO) The two algorithms agreed on the count of weak map images"
+    " for any given base count.\n\n";
+    return 0;
+}
+
 int main() 
 {
-    return program__verify_ischirotope_port();
+    Chirotope<3,6> chi("++--+---+-+-------++");
+    return program__test_lower_cone_generation(chi);
 }
