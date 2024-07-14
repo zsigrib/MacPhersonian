@@ -145,5 +145,6 @@ return 0;
 
 int main() 
 {
-    return program__compute_euler_char_of_JRG_mod_3();
+    std::cout << Chirotope<3,6>("+0000000000000000000").is_chirotope();
+    return 0;
 }

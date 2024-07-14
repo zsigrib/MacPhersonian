@@ -64,29 +64,30 @@ constexpr T division_rounded_up(T total, T divisor) {
     }
 }
 
-// NchooseK<N,k>().array lists all k-element subsets of {0..N-1}, 
+// NchooseK<N,k>::array lists all k-element subsets of {0..N-1}, 
 // and is calculated compile time.
 template<typename T, T N, T k,
     std::enable_if_t<std::is_integral_v<T>, bool> = true>
 struct NchooseK {
-    T array[binomial_coefficient(N, k)][k];
-    constexpr NchooseK(): array() {
-        for (auto i = 0; i < k; i++) {
-            array[0][i] = i;
+    constexpr static const auto array{[]() constexpr{
+        std::array<std::array<T, k>, binomial_coefficient(N,k)> a{}; 
+        for (int i = 0; i < k; i++) {
+            a[0][i] = i;
         }
-        T r;
+        T r = k -1;
         T s = 1;
         while(true) {
             r = k - 1;
-            while(r >= 0 && array[s - 1][r] >= N-k+r)
+            while(r >= 0 && a[s - 1][r] >= N-k+r)
                 r--;
             if (r == -1)
                 break;
             for (auto i = 0; i < r; i++)
-                array[s][i] = array[s-1][i];
+                a[s][i] = a[s-1][i];
             for (auto i = r; i < k; i++)
-                array[s][i] = array[s-1][r] + i - r + 1;
+                a[s][i] = a[s-1][r] + i - r + 1;
             s++;
         }
-    }
+        return a;
+    }()};
 };
