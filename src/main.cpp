@@ -112,12 +112,11 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
     std::cout << "Scanning OMs with " << b+1 << " bases...\n";
     size_t non_contr = 0;
     for (auto c : fixed_OMs_by_bases[b]) {
-        int base_count = c.countbases();
         std::vector<size_t> weak_images = smaller_OMs(
             all_fixed_OMs,
             base_counts,
             c,
-            base_count
+            b+1
         );
         auto f_vector = face_vector<binomial_coefficient(N0,R0)>(
             lower_cone_face_vectors, weak_images
@@ -126,7 +125,7 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
         if (ec % 3 != 1 && ec % 3 != -2) non_contr++;
         // Save OM to list of all OMS:
         all_fixed_OMs.push_back(c);
-        base_counts.push_back(base_count);
+        base_counts.push_back(b+1);
         smaller_OM_indices.push_back(weak_images);
         lower_cone_face_vectors.push_back(f_vector);
         /*if (c == JRG) {
@@ -395,8 +394,102 @@ int program__test_lower_cone_generation(const Chirotope<R, N>& top) {
     return 0;
 }
 
+
+
+// PROGRAM
+
+template<int R, int N>
+int program__compute_fvector_of_lowercone(
+    const Chirotope<R, N>& top,
+    const std::vector<std::vector<Chirotope<R, N>>> targets,
+    const std::vector<std::vector<Chirotope<R,N>>> wmis_by_bases_={},
+    bool wmis_precalculated = true
+) {
+
+for (auto target_list: targets) {
+    for (auto target : target_list) {
+        if (!top.OM_weak_maps_to(target)) {
+            std::cerr << "The list of targets included        " << target
+            << ",\nbut this is not a weak map image of " << top;
+            return 1;
+        }
+    }
+}
+
+if (!wmis_precalculated) {
+    std::cout << "The set of weak map images is not precalculated. "
+    "Calculating it...\n\n";
+}
+const auto& wmis_by_bases(wmis_precalculated? wmis_by_bases_ : generate_lower_cone(top));
+
+std::vector<Chirotope<R, N>> all_wmis;
+std::vector<int> base_counts;
+//std::vector<std::vector<size_t>> smaller_OM_indices;
+std::vector<std::array<size_t, binomial_coefficient(N0,R0)>> lower_cone_face_vectors;
+for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
+    std::cout << "Computing face vectors of OMs with " << b+1 << " bases...\n";
+    size_t non_contr = 0;
+    for (auto c : wmis_by_bases[b]) {
+        // PARSE
+        std::vector<size_t> weak_images = smaller_OMs(
+            all_wmis,
+            base_counts,
+            c,
+            b+1
+        );
+        auto f_vector = face_vector<binomial_coefficient(N0,R0)>(
+            lower_cone_face_vectors, weak_images
+        );
+        auto ec = euler_characteristic<binomial_coefficient(N0,R0)>(f_vector);
+        if (ec != 1) non_contr++;
+        // PRINT
+        for (auto target : targets[b+1]) {
+            if (target.is_same_OM_as(c)) {
+                std::cout << "Found target OM " << target << "! "
+                "Euler-characteristic: " << ec << ", face vector: ("
+                << f_vector[0];
+                for (auto d = 1; d < binomial_coefficient(N0,R0); d++) {
+                    std::cout << ", " << f_vector[d];
+                }
+                std::cout << ")\n";
+            }
+        }
+        // SAVE
+        all_wmis.push_back(c);
+        base_counts.push_back(b+1);
+        //smaller_OM_indices.push_back(weak_images);
+        lower_cone_face_vectors.push_back(f_vector);
+    }
+    std::cout << "# of non 1 Euler-characteristic lower cones: "
+    << non_contr << "/" << wmis_by_bases[b].size() << " (# of bases: "
+    << b+1 << ").\n";
+}
+std::cout << "All face vectors computed successfully. Terminating.\n";
+return 0;
+
+}
+
+
+
+// PROGRAM
+
+template<int R, int N>
+int program__compute_f_vector_of_single_element(const Chirotope<R,N>& chi) {
+    std::vector<std::vector<Chirotope<R,N>>> targets(
+        binomial_coefficient(N,R)+1, 
+        std::vector<Chirotope<R,N>>()
+    );
+    targets[chi.countbases()].push_back(chi);
+    return program__compute_fvector_of_lowercone<R,N>(
+        chi,
+        targets,
+        std::vector<std::vector<Chirotope<R,N>>>{},
+        false
+    );
+}
+
 int main() 
 {
-    Chirotope<3,6> chi("++--+---+-+-------++");
-    return program__test_lower_cone_generation(chi);
+    Chirotope<R0,N0> chi("+++00000000000000000");
+    return program__compute_f_vector_of_single_element(chi);
 }
