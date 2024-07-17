@@ -8,7 +8,7 @@
 
 
 #define R0 3
-#define N0 6
+#define N0 9
 
 
 
@@ -98,7 +98,6 @@ auto input = ReadOMDataFromFile<Chirotope<R0,N0>>(
     6
 );
 int count = 0;
-auto JRG = OMexamples::JRG();
 for (auto p: input) {
     int base_count = p.countbases();
     fixed_OMs_by_bases[base_count - 1].push_back(p);
@@ -128,8 +127,8 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
         base_counts.push_back(b+1);
         smaller_OM_indices.push_back(weak_images);
         lower_cone_face_vectors.push_back(f_vector);
-        /*if (c == JRG) {
-            std::cout << "Euler characteristic of JRG: " << euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) 
+        /*if (c == OMexamples::RIN9) {
+            std::cout << "Euler characteristic of RIN9: " << euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) 
             << ", mod 3:" <<  euler_characteristic<binomial_coefficient(N0,R0)>(f_vector) % 3 << "\n";
         }*/
     }
@@ -258,10 +257,53 @@ return 0;
 }
 
 
+// Returns the list of all matroids, grouped by basecount.
+// The index is shifted by 1 from the actual basecount.
+template<int R, int N>
+std::vector<std::vector<Matroid<R, N>>> read_matroids() 
+{
 
+std::cout << "Reading the set of all rank " << R
+<< " matroids on " << N << " elements...";
+std::vector<std::vector<Matroid<R, N>>> matroids_by_bases(
+    binomial_coefficient(N, R),
+    std::vector<Matroid<R, N>>()
+);
+auto input = ReadOMDataFromFiles<Matroid<R,N>>(
+    database_names::matroid_set<R, N>, 0
+);
+int last_basecount = 0;
+for (auto p : input) {
+    // PRINT
+    if (p.first != last_basecount) {
+        std::cout << "Finished loading matroids with "
+        << last_basecount << " bases. There were " 
+        << matroids_by_bases[last_basecount - 1].size()
+        << " of them.\n";
+        last_basecount = p.first;
+    }
+    // PARSE
+    matroids_by_bases[p.first - 1].push_back(p.second);
+}
+std::cout << "Finished parsing matroids with "
+<< last_basecount << "bases. There were " 
+<< matroids_by_bases[last_basecount - 1].size()
+<< " of them.\n";
+
+std::cout << "Finished reading in all matroids.\n";
+return matroids_by_bases;
+
+}
+
+
+// Return the set of all weak map images of `top`, grouped by basecount.
+// The index is shifted from the basecount by 1.
 template<int R, int N>
 std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(const Chirotope<R, N>& top)
 {
+
+if (!top.is_chirotope())
+    throw std::invalid_argument("ERROR: top is not a chirotope.");
 
 std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
     binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
@@ -271,13 +313,20 @@ auto input = ReadOMDataFromFiles<Matroid<R,N>>(
     database_names::matroid_set<R,N>, 0
 );
 
-std::cout << "Generating lower cone of " << top << "...\n\n";
+std::cout << "Generating lower cone of " << top << "...\n";
 int last_basecount = 0;
-int total = 0;
-int matroids_with_fixed_basecount = 0;
-int count_of_wmi = 0;
-int count_of_wmi_with_fixed_basecount = 0;
+size_t total = 0;
+size_t matroids_with_fixed_basecount = 0;
+size_t count_of_wmi = 0;
+size_t count_of_wmi_with_fixed_basecount = 0;
+int top_basecount = top.countbases();
 for (auto p : input) {
+    if (top_basecount == p.first) {
+        std::cout << "We have exhausted all basecounts smaller than"
+        " top's basecount (" << top_basecount << ").\n";
+        all_wmis_by_basecount[top_basecount - 1].push_back(top);
+        break;
+    }
     // PRINT
     if (p.first != last_basecount) {
         std::cout << "Finished parsing matroids with "
@@ -291,11 +340,13 @@ for (auto p : input) {
         last_basecount = p.first;
     }
     // PARSE
-    auto restriced = top.restrict_to_matroid(p.second);
-    if (top.weak_maps_to(p.second) && restriced.is_chirotope()) {
-        count_of_wmi++;
-        count_of_wmi_with_fixed_basecount++;
-        all_wmis_by_basecount[p.first - 1].push_back(restriced);
+    if (top.weak_maps_to(p.second)) {
+        auto restricted = top.restrict_to_matroid(p.second);
+        if (restricted.is_chirotope()) {
+            count_of_wmi++;
+            count_of_wmi_with_fixed_basecount++;
+            all_wmis_by_basecount[p.first - 1].push_back(restricted);
+        }
     }
     // INCREMENT
     matroids_with_fixed_basecount++;
@@ -314,11 +365,65 @@ return all_wmis_by_basecount;
 
 
 
+// Calculate all weak map images of `top` using a precomputed
+// set of matroids. Both `matroids` and the output are grouped
+// by base count, and indices are shifted by 1 from the actual
+// base count.
+template<int R, int N>
+std::vector<std::vector<Chirotope<R, N>>> generate_lower_cone(
+    const Chirotope<R, N>& top, 
+    const std::vector<std::vector<Matroid<R, N>>>& matroids
+) {
+
+if (!top.is_chirotope())
+    throw std::invalid_argument("ERROR: top is not a chirotope.");
+
+std::cout << "Generating lower cone of " << top << 
+", given the set of appropriate matroids...\n";
+std::vector<std::vector<Chirotope<R, N>>> all_wmis_by_bases(
+    binomial_coefficient(N,R),
+    std::vector<Chirotope<R, N>>()
+);
+size_t count_of_wmi = 0;
+size_t total = 0;
+int top_basecount = top.countbases();
+for (auto b = 0; b < top_basecount - 1; b++) {
+    size_t count_of_wmi_with_fixed_basecount = 0;
+    for (auto matroid : matroids[b]) {
+        if (top.weak_maps_to(matroid)) {
+            auto restricted = top.restrict_to_matroid(matroid);
+            if (restricted.is_chirotope()) {
+                count_of_wmi++;
+                count_of_wmi_with_fixed_basecount++;
+                all_wmis_by_bases[b].push_back(restricted);
+            }
+        }
+    }
+    total += matroids[b].size();
+    std::cout << "Finished parsing matroids with " << b+1
+    << " bases.\n";
+    std::cout << "--- There were " << count_of_wmi_with_fixed_basecount
+    << "/" << matroids[b].size() << " weak map images for this basecount.\n";
+    std::cout << "--- There are " << count_of_wmi << "/"
+    << total << " weak map images in total so far.\n";
+}
+all_wmis_by_bases[top_basecount - 1].push_back(top);
+std::cout << "Generation of the lower cone of "
+<< top << " is complete; we have checked all relevant basecounts.\n";
+return all_wmis_by_bases;
+
+}
+
+
+
 // Reads all OMs of the given rank and number of elements, and selects
 // only those which fall inside the given lower cone.
 template<int R, int N>
 std::vector<std::vector<Chirotope<R, N>>> filter_lower_cone(const Chirotope<R, N>& top) 
 {
+
+if (!top.is_chirotope())
+    throw std::invalid_argument("ERROR: top is not a chirotope.");
 
 std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
     binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
@@ -332,11 +437,18 @@ std::cout << "Reading all OMs with R = " << R << " and N = " << N
 << ", and keeping those which are in the lower cone of " << top
 << "...\n\n";
 int last_basecount = 0;
-int total = 0;
-int OMs_with_fixed_basecount = 0;
-int count_of_wmi = 0;
-int count_of_wmi_with_fixed_basecount = 0;
+size_t total = 0;
+size_t OMs_with_fixed_basecount = 0;
+size_t count_of_wmi = 0;
+size_t count_of_wmi_with_fixed_basecount = 0;
+int top_basecount = top.countbases();
 for (auto p : input) {
+    if (top_basecount == p.first) {
+        std::cout << "We have exhausted all basecounts smaller than"
+        " top's basecount (" << top_basecount << ").\n";
+        all_wmis_by_basecount[top_basecount - 1].push_back(top);
+        break;
+    }
     // PRINT
     if (last_basecount != p.first) {
         std::cout << "Finished parsing OMs with " << last_basecount
@@ -401,8 +513,8 @@ int program__test_lower_cone_generation(const Chirotope<R, N>& top) {
 template<int R, int N>
 int program__compute_fvector_of_lowercone(
     const Chirotope<R, N>& top,
-    const std::vector<std::vector<Chirotope<R, N>>> targets,
-    const std::vector<std::vector<Chirotope<R,N>>> wmis_by_bases_={},
+    const std::vector<std::vector<Chirotope<R, N>>>& targets,
+    const std::vector<std::vector<Chirotope<R,N>>>& wmis_by_bases_={},
     bool wmis_precalculated = true
 ) {
 
@@ -426,7 +538,8 @@ std::vector<Chirotope<R, N>> all_wmis;
 std::vector<int> base_counts;
 //std::vector<std::vector<size_t>> smaller_OM_indices;
 std::vector<std::array<size_t, binomial_coefficient(N0,R0)>> lower_cone_face_vectors;
-for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
+int top_basecount = top.countbases();
+for (int b = 0; b < top_basecount; b++) {
     std::cout << "Computing face vectors of OMs with " << b+1 << " bases...\n";
     size_t non_contr = 0;
     for (auto c : wmis_by_bases[b]) {
@@ -443,7 +556,7 @@ for (int b = 0; b < binomial_coefficient(N0, R0); b++) {
         auto ec = euler_characteristic<binomial_coefficient(N0,R0)>(f_vector);
         if (ec != 1) non_contr++;
         // PRINT
-        for (auto target : targets[b+1]) {
+        for (auto target : targets[b]) {
             if (target.is_same_OM_as(c)) {
                 std::cout << "Found target OM " << target << "! "
                 "Euler-characteristic: " << ec << ", face vector: ("
@@ -474,22 +587,65 @@ return 0;
 // PROGRAM
 
 template<int R, int N>
-int program__compute_f_vector_of_single_element(const Chirotope<R,N>& chi) {
-    std::vector<std::vector<Chirotope<R,N>>> targets(
-        binomial_coefficient(N,R)+1, 
+int program__compute_f_vector_of_single_element(const Chirotope<R,N>& chi) 
+{
+
+std::vector<std::vector<Chirotope<R,N>>> targets(
+    binomial_coefficient(N,R), 
+    std::vector<Chirotope<R,N>>()
+);
+targets[chi.countbases() - 1].push_back(chi);
+return program__compute_fvector_of_lowercone<R,N>(
+    chi,
+    targets,
+    std::vector<std::vector<Chirotope<R,N>>>{},
+    false
+);
+
+}
+
+
+
+// PROGRAM
+
+template<int R, int N>
+int program__compute_f_vector_of_independent_elements(const std::vector<Chirotope<R, N>>& targets) 
+{
+
+auto matroids = read_matroids<R, N>();
+
+int target_idx = 0;
+for (auto chi: targets) {
+    std::cout << "\n[TARGET " << target_idx+1 << "/" 
+    << targets.size() << "]\n";
+    std::vector<std::vector<Chirotope<R,N>>> targets_(
+        binomial_coefficient(N,R), 
         std::vector<Chirotope<R,N>>()
     );
-    targets[chi.countbases()].push_back(chi);
-    return program__compute_fvector_of_lowercone<R,N>(
+    targets_[chi.countbases() - 1].push_back(chi);
+    auto lc = generate_lower_cone(chi, matroids);
+    std::cout << "\n";
+    auto ret = program__compute_fvector_of_lowercone(
         chi,
-        targets,
-        std::vector<std::vector<Chirotope<R,N>>>{},
-        false
+        targets_,
+        lc
     );
+    if (ret) return ret;
+    target_idx++;
+}
+std::cout << "\nFinished with all targets.";
+return 0;
+
 }
 
 int main() 
 {
-    Chirotope<R0,N0> chi("+++00000000000000000");
-    return program__compute_f_vector_of_single_element(chi);
+    /*std::vector<Chirotope<4,8>> targets;
+    for (auto c : OMexamples::NON_REALIZABLES) {
+        targets.push_back(c);
+    }
+    return program__compute_f_vector_of_independent_elements(
+        targets
+    );*/
+    return program__compute_f_vector_of_single_element(Chirotope<2,5>("+++0000000"));
 }

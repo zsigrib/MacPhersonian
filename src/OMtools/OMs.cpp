@@ -1110,6 +1110,7 @@ constexpr int index_of_Rtuple(const std::array<char, R>& a) {
 			return l;
 		m=(u+l)>>1;
 	}
+	throw std::invalid_argument("We shouldn't have reached this line in index_of_Rtuple.");
 }
 
 template<int R, int N>
