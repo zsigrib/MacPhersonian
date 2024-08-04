@@ -98,13 +98,13 @@ struct Matroid {
     // Change the matroid such that the `R`-tuple stored at the given
     // index withing `RTUPLES_LIST::array` is a basis if and only if
     // the `bool` argument is `true`.
-    constexpr void set_basis(int, bool);
+    constexpr Matroid& set_basis(int, bool);
     // Set the `r`th bit of the `i`th integer of `char_vector` to the given
     // value (`1` if `true`, `0` if `false`).
-    constexpr void set(int, int, bool);
+    constexpr Matroid& set(int, int, bool);
     // Set the `r`th bit of the `i`th integer of `char_vector` to be 0 or 1
     // depending on the `char` argument being `'0'` or `'1'`.
-    constexpr void set_using_char(int, int, char);
+    constexpr Matroid& set_using_char(int, int, char);
     // Given a string of `'0'` and `'1'` characters of length `NR_RTUPLES`,
     // sets this matroid to be the matroid prescribed by it: this matroid
     // will have the `R`-tuple stored in RTUPLES_LIST::array[i]` as a basis
@@ -226,14 +226,29 @@ struct Chirotope
     // - `c[i] == '0'` implies `mc[i] == '0'`,
     // - `c[i] == '+'` implies `mc[i] == '-'`, and
     // - `c[i] == '-'` implies `mc[i] == '+'`. 
+    //
+    // See also `invert()` for an in-place version of this operation.
     constexpr Chirotope inverse() const;
+    // Changes this chirotope to be its inverse, i.e. if the original
+    // version of this chirotope is denoted by `c` and the post-operation
+    // state by `mc` then
+    // - `c[i] == '0'` implies `mc[i] == '0'`,
+    // - `c[i] == '+'` implies `mc[i] == '-'`, and
+    // - `c[i] == '-'` implies `mc[i] == '+'`.
+    //
+    // See also `inverse()` for a non-mutating version of this operation.
+    constexpr Chirotope& invert();
     // Return the underlying matroid of this chirotope, i.e. the set of
     // bases of this chirotope.
     constexpr Matroid<R, N> underlying_matroid() const;
+    // Return a copy of this chirotope which is set to `0` on all non-bases 
+    // of the given matroid. Note that the resulting object might not satisfy 
+    // the chirotope axioms. 
+    constexpr Chirotope restriction_to_matroid(const Matroid<R, N>&) const;
     // Set this chirotope to `0` on all non-bases of the given matroid.
-    // Note that the resulting object might not satisfy the chirotope
-    // axioms. 
-    constexpr Chirotope restrict_to_matroid(const Matroid<R, N>&) const;
+    // Note that the new state of this object might not satisfy the 
+    // chirotope axioms. 
+    constexpr Chirotope& restrict_to_matroid(const Matroid<R, N>&);
 
     // ===============================
     //   WRAPPED ACCESS TO VARIABLES
@@ -258,19 +273,19 @@ struct Chirotope
     constexpr char evaluate(int) const;
     // Sets the appropriate bit of the appropriate integer in `plus`.
     // See the documentation of `plus`.
-    constexpr void set_plus(int, bool);
+    constexpr Chirotope& set_plus(int, bool);
     // Sets the appropriate bit of the appropriate integer in `minus`.
     // See the documentation of `minus`.
-    constexpr void set_minus(int, bool);
+    constexpr Chirotope& set_minus(int, bool);
     // Makes the chirotope evaluate for the `R`-tuple in 
     // `RTUPLES_LIST::array` at the given index to `0`, `+`, or `-`,
     // if the given `char` is `'0'`, `'+'`, or `'-'` respectively.
-    constexpr void set(int, char);
+    constexpr Chirotope& set(int, char);
     // Makes the chirotope evaluate for the `R`-tuple corresponding
     // to the `r`th bit of the `i`th integer of `plus` and `minus`
     // to `0`, `+`, or `-`, if the given `char` is `'0'`, `'+'`, or 
     // `'-'` respectively.
-    constexpr void set(int, int, char);
+    constexpr Chirotope& set(int, int, char);
     // Given a string of `'+'`, `'-'`, and `'0'` characters of length
     // `NR_RTUPLES`, sets this chirotope to have the values prescribed
     // by it: the chirotope will evaluate to the value specified by the

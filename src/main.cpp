@@ -358,7 +358,7 @@ for (auto p : input) {
     }
     // PARSE
     if (top.weak_maps_to(p.second)) {
-        auto restricted = top.restrict_to_matroid(p.second);
+        auto restricted = top.restriction_to_matroid(p.second);
         if (restricted.is_chirotope()) {
             count_of_wmi++;
             count_of_wmi_with_fixed_basecount++;
@@ -415,7 +415,7 @@ for (auto b = 0; b < top_basecount - 1; b++) {
     size_t count_of_wmi_with_fixed_basecount = 0;
     for (auto matroid : matroids[b]) {
         if (top.weak_maps_to(matroid)) {
-            auto restricted = top.restrict_to_matroid(matroid);
+            auto restricted = top.restriction_to_matroid(matroid);
             if (restricted.is_chirotope()) {
                 count_of_wmi++;
                 count_of_wmi_with_fixed_basecount++;

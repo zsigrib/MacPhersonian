@@ -33,17 +33,19 @@ constexpr bool Matroid<R, N>::is_basis(int idx) const {
 }
 
 template<int R, int N>
-constexpr void Matroid<R, N>::set_basis(int idx, bool basis) {
+constexpr Matroid<R, N>& Matroid<R, N>::set_basis(int idx, bool basis) {
     char_vector[idx >> 5] = char_vector[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(basis) << (idx & 31);
+	return (*this);
 }
 
 template<int R, int N>
-constexpr void Matroid<R, N>::set(int i, int r, bool basis) {
+constexpr Matroid<R, N>& Matroid<R, N>::set(int i, int r, bool basis) {
     char_vector[i] = char_vector[i] & ~((uint32_t)1 << r) | uint32_t(basis) << r;
+	return (*this);
 }
 
 template<int R, int N>
-constexpr void Matroid<R, N>::set_using_char(int i, int r, char c) {
+constexpr Matroid<R, N>& Matroid<R, N>::set_using_char(int i, int r, char c) {
     switch (c) {
     case '0':
         char_vector[i] &= ~((uint32_t)1 << r);
@@ -57,6 +59,7 @@ constexpr void Matroid<R, N>::set_using_char(int i, int r, char c) {
         +std::to_string(c)+"'.");
         break;
     }
+	return (*this);
 }
 
 template<int R, int N>
@@ -201,6 +204,17 @@ constexpr Chirotope<R, N> Chirotope<R,N>::inverse() const {
 }
 
 template<int R, int N>
+constexpr Chirotope<R, N>& Chirotope<R, N>::invert() {
+	uint32_t temp;
+	for (auto i = 0; i < NR_INT32; i++) {
+		temp = plus[i];
+		plus[i] = minus[i];
+		minus[i] = temp;
+	}
+	return (*this);
+}
+
+template<int R, int N>
 constexpr Matroid<R, N> Chirotope<R, N>::underlying_matroid() const {
     Matroid<R, N> matroid;
     for (auto i = 0; i < NR_INT32; i++) {
@@ -210,7 +224,7 @@ constexpr Matroid<R, N> Chirotope<R, N>::underlying_matroid() const {
 }
 
 template<int R, int N>
-constexpr Chirotope<R, N> Chirotope<R, N>::restrict_to_matroid
+constexpr Chirotope<R, N> Chirotope<R, N>::restriction_to_matroid
 (const Matroid<R, N>& matroid) const {
 	Chirotope<R, N> ret(*this);
     for (auto i = 0; i < NR_INT32; i++) {
@@ -219,6 +233,17 @@ constexpr Chirotope<R, N> Chirotope<R, N>::restrict_to_matroid
 
     }
     return ret;
+}
+
+template<int R, int N>
+constexpr Chirotope<R, N>& Chirotope<R, N>::restrict_to_matroid
+(const Matroid<R, N>& matroid) {
+    for (auto i = 0; i < NR_INT32; i++) {
+        plus[i] &= matroid.char_vector[i];
+        minus[i] &= matroid.char_vector[i];
+
+    }
+    return (*this);
 }
 
 // Here "idx >> 5" is just "idx / 32" and "idx & 31" is "idx % 32"
@@ -255,17 +280,19 @@ constexpr char Chirotope<R, N>::evaluate(int idx) const {
 }
 
 template<int R, int N>
-constexpr void Chirotope<R, N>::set_plus(int idx, bool value) {
+constexpr Chirotope<R, N>& Chirotope<R, N>::set_plus(int idx, bool value) {
     plus[idx >> 5] = plus[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(value) << (idx & 31);
+	return (*this);
 }
 
 template<int R, int N>
-constexpr void Chirotope<R, N>::set_minus(int idx, bool value) {
+constexpr Chirotope<R, N>& Chirotope<R, N>::set_minus(int idx, bool value) {
     minus[idx >> 5] = minus[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(value) << (idx & 31);
+	return (*this);
 }
 
 template<int R, int N>
-constexpr void Chirotope<R, N>::set(int i, int r, char c) {
+constexpr Chirotope<R, N>& Chirotope<R, N>::set(int i, int r, char c) {
     switch (c)
     {
     case '+':
@@ -286,11 +313,13 @@ constexpr void Chirotope<R, N>::set(int i, int r, char c) {
         "character was '"+std::to_string(c)+"'.");
         break;
     }
+	return (*this);
 }
 
 template<int R, int N>
-constexpr void Chirotope<R, N>::set(int idx, char c) {
+constexpr Chirotope<R, N>& Chirotope<R, N>::set(int idx, char c) {
     set(idx >> 5, idx & 31, c);
+	return (*this),
 }
 
 template<int R, int N>
