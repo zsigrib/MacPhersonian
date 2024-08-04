@@ -119,6 +119,10 @@ struct Matroid {
     constexpr bool is_zero() const;
     // Return the number of bases of the matroid.
     constexpr int countbases() const;
+    // Returns whether the given element is a loop in this matroid.
+    constexpr bool is_loop(int) const;
+    // Returns whether the given element is a coloop in this matroid.
+    constexpr bool is_coloop(int) const;
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
@@ -243,11 +247,17 @@ struct Chirotope
     constexpr Matroid<R, N> underlying_matroid() const;
     // Return a copy of this chirotope which is set to `0` on all non-bases 
     // of the given matroid. Note that the resulting object might not satisfy 
-    // the chirotope axioms. 
+    // the chirotope axioms.
+    //
+    // See also `restrict_to_matroid(...)` for an in-place version of this 
+    // operation.
     constexpr Chirotope restriction_to_matroid(const Matroid<R, N>&) const;
     // Set this chirotope to `0` on all non-bases of the given matroid.
     // Note that the new state of this object might not satisfy the 
-    // chirotope axioms. 
+    // chirotope axioms.
+    //
+    // See also `restriction_to_matroid(...)` for a non-mutating version 
+    // of this operation. 
     constexpr Chirotope& restrict_to_matroid(const Matroid<R, N>&);
 
     // ===============================
@@ -302,6 +312,10 @@ struct Chirotope
     // Returns the number of bases of the chirotope, i.e. the number
     // of distinct `R`-tuples on which it evaluates to a non-zero value.
     constexpr int countbases() const;
+    // Returns whether the given element is a loop in this chirotope.
+    constexpr bool is_loop(int) const;
+    // Returns whether the given element is a coloop in this chirotope.
+    constexpr bool is_coloop(int) const;
     // Returns whether this chirotope weak maps to the other chirotope.
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given

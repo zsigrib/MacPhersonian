@@ -97,6 +97,24 @@ constexpr int Matroid<R, N>::countbases() const {
 }
 
 template<int R, int N>
+constexpr bool Matroid<R, N>::is_loop(int element) const {
+	for (auto i = 0; i < NR_INT32; i++) {
+		if (char_vector[i] & RTUPLES_LIST::contained_mask32[element][i])
+			return false;
+	}
+	return true;
+}
+
+template<int R, int N>
+constexpr bool Matroid<R, N>::is_coloop(int element) const {
+	for (auto i = 0; i < NR_INT32; i++) {
+		if (char_vector[i] & ~RTUPLES_LIST::contained_mask32[element][i])
+			return false;
+	}
+	return true;
+}
+
+template<int R, int N>
 constexpr bool Matroid<R, N>::weak_maps_to(const Matroid& other) const {
     for (auto i = 0; i < NR_INT32; i++) {
         if (~char_vector[i] & other.char_vector[i]) return false;
@@ -319,7 +337,7 @@ constexpr Chirotope<R, N>& Chirotope<R, N>::set(int i, int r, char c) {
 template<int R, int N>
 constexpr Chirotope<R, N>& Chirotope<R, N>::set(int idx, char c) {
     set(idx >> 5, idx & 31, c);
-	return (*this),
+	return (*this);
 }
 
 template<int R, int N>
@@ -354,6 +372,24 @@ constexpr int Chirotope<R, N>::countbases() const {
         count += count_1bits(plus[i] | minus[i]);
     }
     return count;
+}
+
+template<int R, int N>
+constexpr bool Chirotope<R, N>::is_loop(int element) const {
+	for (auto i = 0; i < NR_INT32; i++) {
+		if ((plus[i] | minus[i]) & RTUPLES_LIST::contained_mask32[element][i])
+			return false;
+	}
+	return true;
+}
+
+template<int R, int N>
+constexpr bool Chirotope<R, N>::is_coloop(int element) const {
+	for (auto i = 0; i < NR_INT32; i++) {
+		if ((plus[i] | minus[i]) & ~RTUPLES_LIST::contained_mask32[element][i])
+			return false;
+	}
+	return true;
 }
 
 template<int R, int N>
