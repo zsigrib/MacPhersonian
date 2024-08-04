@@ -49,6 +49,10 @@ std::ifstream& operator>>(std::ifstream&, Matroid<R, N>&);
 
 template<int R, int N>
 struct Matroid {
+    // =============
+    //   CONSTANTS
+    // =============
+
     // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
     // subsets of `0..N-1`.
     static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
@@ -63,20 +67,31 @@ struct Matroid {
     // evaluates at compile-time.
     using RTUPLES_LIST = NchooseK<int, N, R>;
 
+    // =============
+    //   VARIABLES
+    // =============
+
     // The `c`th least significant bit of `char_vector[i]` is 1 if and 
     // only if the `R`-tuple stored in `RTUPLES_LIST::array[i * 32 + c]`
     // is a basis of the matroid.
     uint32_t char_vector[NR_INT32];
 
+    // ================
+    //   CONSTRUCTORS
+    // ================
+
     // Initializes `char_vector` to an array of 0s. Note that this
     // does not satisfy the matroid axioms, so it is not a valid
     // matroid.
     constexpr Matroid(): char_vector{} {}
-
     // Constructs a matroid from a string, by reading a 0-1 characteristic
     // vector, analogously to `read()`.
     constexpr Matroid(const std::string&);
 
+    // ===============================
+    //   WRAPPED ACCESS TO VARIABLES
+    // ===============================
+    
     // Returns whether the `R`-tuple stored at the given index within 
     // `RTUPLES_LIST::array` is a basis of this matroid.
     constexpr bool is_basis(int) const;
@@ -90,16 +105,20 @@ struct Matroid {
     // Set the `r`th bit of the `i`th integer of `char_vector` to be 0 or 1
     // depending on the `char` argument being `'0'` or `'1'`.
     constexpr void set_using_char(int, int, char);
-
-    // Returns `true` if this matroid has no bases.
-    constexpr bool is_zero() const;
-    // Return the number of bases of the matroid.
-    constexpr int countbases() const;
     // Given a string of `'0'` and `'1'` characters of length `NR_RTUPLES`,
     // sets this matroid to be the matroid prescribed by it: this matroid
     // will have the `R`-tuple stored in RTUPLES_LIST::array[i]` as a basis
     // if and only if the `i`th character of the given string is `'1'`.
     constexpr Matroid& read(const std::string&);
+
+    // ===================
+    //   COMPLEX QUERIES
+    // ===================
+
+    // Returns `true` if this matroid has no bases.
+    constexpr bool is_zero() const;
+    // Return the number of bases of the matroid.
+    constexpr int countbases() const;
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
@@ -113,22 +132,23 @@ struct Matroid {
     // Returns whether this matroid weak maps to the other one; see `weak_maps_to()`.
     constexpr bool operator>=(const Matroid&) const;
 
+    // ========================
+    //   WRITING AND PRINTING
+    // ========================
+
     // Writes the matroid to the given output stream as a sequence of
     // `'0'` and `'1'` characters: the `i`th character is `'1'` if and
     // only if the `i`th `R`-tuple stored in `RTUPLES_LIST::array` is
     // a basis of this matroid.
     friend std::ostream& operator<< <>(std::ostream&, const Matroid&);
-
     // Writes the matroid to the given output stream as a sequence of
     // `'0'` and `'1'` characters: the `i`th character is `'1'` if and
     // only if the `i`th `R`-tuple stored in `RTUPLES_LIST::array` is
     // a basis of this matroid.
     friend std::ofstream& operator<< <>(std::ofstream&, const Matroid&);
-
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
     // characters into the given matroid, as specified in `Matroid::read(...)`.
     friend std::istream& operator>> <>(std::istream&, Matroid&);
-
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
     // characters into the given matroid, as specified in `Matroid::read(...)`.
     friend std::ifstream& operator>> <>(std::ifstream&, Matroid&);
@@ -155,6 +175,10 @@ std::ifstream& operator>>(std::ifstream&, Chirotope<R, N>&);
 template<int R, int N>
 struct Chirotope
 {
+    // =============
+    //   CONSTANTS
+    // =============
+
     // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
     // subsets of `0..N-1`.
     static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
@@ -169,6 +193,10 @@ struct Chirotope
     // evaluates at compile-time.
     using RTUPLES_LIST = NchooseK<int, N, R>;
     
+    // =============
+    //   VARIABLES
+    // =============
+
     // The `c`th least significant bit of `plus[i]` is 1 if and only if 
     // the chirotope evaluates to `+` on the `R`-tuple stored in
     // `RTUPLES_LIST::array[i * 32 + c]`.
@@ -178,13 +206,20 @@ struct Chirotope
     // `RTUPLES_LIST::array[i * 32 + c]`.
     uint32_t minus[NR_INT32];
 
+    // ================
+    //   CONSTRUCTORS
+    // ================
+
     // Initializes `plus` and `minus` to arrays of 0s. Note that this
     // does not satisfy chirotope axiom (B0), so it is not a valid
     // chirotope.
     constexpr Chirotope(): plus{}, minus{} {}
-
     // Constructs a chirotope from a string, analogously to `read()`.
     constexpr Chirotope(const std::string&);
+
+    // =====================================
+    //   CONSTRUCT NEW (ORIENTED) MATROIDS
+    // =====================================
 
     // Return the inverse of this chirotope, i.e. if this chirotope is
     // denoted by `c`, then `mc`, for which 
@@ -192,11 +227,18 @@ struct Chirotope
     // - `c[i] == '+'` implies `mc[i] == '-'`, and
     // - `c[i] == '-'` implies `mc[i] == '+'`. 
     constexpr Chirotope inverse() const;
-
     // Return the underlying matroid of this chirotope, i.e. the set of
     // bases of this chirotope.
     constexpr Matroid<R, N> underlying_matroid() const;
-    
+    // Set this chirotope to `0` on all non-bases of the given matroid.
+    // Note that the resulting object might not satisfy the chirotope
+    // axioms. 
+    constexpr Chirotope restrict_to_matroid(const Matroid<R, N>&) const;
+
+    // ===============================
+    //   WRAPPED ACCESS TO VARIABLES
+    // ===============================
+
     // Returns whether the chirotope evaluates to `+` on the `R`-tuple
     // stored at the given index within `RTUPLES_LIST::array`.
     constexpr bool get_plus(int) const;
@@ -229,22 +271,22 @@ struct Chirotope
     // to `0`, `+`, or `-`, if the given `char` is `'0'`, `'+'`, or 
     // `'-'` respectively.
     constexpr void set(int, int, char);
-    // Set this chirotope to `0` on all non-bases of the given matroid.
-    // Note that the resulting object might not satisfy the chirotope
-    // axioms. 
-    constexpr Chirotope restrict_to_matroid(const Matroid<R, N>&) const;
-
-    // Returns `true` if this chirotope is constant zero.
-    constexpr bool is_zero() const;
-    // Returns the number of bases of the chirotope, i.e. the number
-    // of distinct `R`-tuples on which it evaluates to a non-zero value.
-    constexpr int countbases() const;
     // Given a string of `'+'`, `'-'`, and `'0'` characters of length
     // `NR_RTUPLES`, sets this chirotope to have the values prescribed
     // by it: the chirotope will evaluate to the value specified by the
     // `i`th character of the string at the `R`-tuple stored in
     // `RTUPLES_LIST::array[i]`.
     constexpr Chirotope& read(const std::string&);
+    
+    // ===================
+    //   COMPLEX QUERIES
+    // ===================
+
+    // Returns `true` if this chirotope is constant zero.
+    constexpr bool is_zero() const;
+    // Returns the number of bases of the chirotope, i.e. the number
+    // of distinct `R`-tuples on which it evaluates to a non-zero value.
+    constexpr int countbases() const;
     // Returns whether this chirotope weak maps to the other chirotope.
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given
@@ -278,22 +320,23 @@ struct Chirotope
     // Ported legacy code from Nevena.
     constexpr bool axB2(char sign, char s1, char s2, int in1, int in2) const;
 
+    // ========================
+    //   WRITING AND PRINTING
+    // ========================
+
     // Writes the chirotope to the given output stream as a sequence of
     // `'0'`, `'+'`, and `'-'` characters: the `i`th character is just
     // the chirotope evaluated on the `i`th `R`-tuple stored in
     // `RTUPLES_LIST::array`.
     friend std::ostream& operator<< <>(std::ostream&, const Chirotope&);
-
     // Writes the chirotope to the given file stream as a sequence of
     // `'0'`, `'+'`, and `'-'` characters: the `i`th character is just
     // the chirotope evaluated on the `i`th `R`-tuple stored in
     // `RTUPLES_LIST::array`.
     friend std::ofstream& operator<< <>(std::ofstream&, const Chirotope&);
-
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
     // characters into the given chirotope, as specified in `Chirotope::read(...)`.
     friend std::istream& operator>> <>(std::istream&, Chirotope&);
-
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
     // characters into the given chirotope, as specified in `Chirotope::read(...)`.
     friend std::ifstream& operator>> <>(std::ifstream&, Chirotope&);

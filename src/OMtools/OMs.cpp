@@ -60,23 +60,6 @@ constexpr void Matroid<R, N>::set_using_char(int i, int r, char c) {
 }
 
 template<int R, int N>
-constexpr bool Matroid<R, N>::is_zero() const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (char_vector[i] != 0) return true;
-    }
-    return false;
-}
-
-template<int R, int N>
-constexpr int Matroid<R, N>::countbases() const {
-    int count = 0;
-    for (auto i = 0; i < NR_INT32; i++) {
-        count += count_1bits(char_vector[i]);
-    }
-    return count;
-}
-
-template<int R, int N>
 constexpr Matroid<R, N>& Matroid<R, N>::read(const std::string& from) {
     if (from.length() != NR_RTUPLES) throw std::invalid_argument("The input string is of incorrect length! "
         "Input length: "+std::to_string(from.length())+", expected length: ("+std::to_string(N)+" "
@@ -91,6 +74,23 @@ constexpr Matroid<R, N>& Matroid<R, N>::read(const std::string& from) {
         set_using_char(NR_INT32 - 1, r, from[(NR_INT32 - 1) * 32 + r]);
     }
     return (*this);
+}
+
+template<int R, int N>
+constexpr bool Matroid<R, N>::is_zero() const {
+    for (auto i = 0; i < NR_INT32; i++) {
+        if (char_vector[i] != 0) return true;
+    }
+    return false;
+}
+
+template<int R, int N>
+constexpr int Matroid<R, N>::countbases() const {
+    int count = 0;
+    for (auto i = 0; i < NR_INT32; i++) {
+        count += count_1bits(char_vector[i]);
+    }
+    return count;
 }
 
 template<int R, int N>
@@ -209,6 +209,18 @@ constexpr Matroid<R, N> Chirotope<R, N>::underlying_matroid() const {
     return matroid;
 }
 
+template<int R, int N>
+constexpr Chirotope<R, N> Chirotope<R, N>::restrict_to_matroid
+(const Matroid<R, N>& matroid) const {
+	Chirotope<R, N> ret(*this);
+    for (auto i = 0; i < NR_INT32; i++) {
+        ret.plus[i] &= matroid.char_vector[i];
+        ret.minus[i] &= matroid.char_vector[i];
+
+    }
+    return ret;
+}
+
 // Here "idx >> 5" is just "idx / 32" and "idx & 31" is "idx % 32"
 
 template<int R, int N>
@@ -282,15 +294,20 @@ constexpr void Chirotope<R, N>::set(int idx, char c) {
 }
 
 template<int R, int N>
-constexpr Chirotope<R, N> Chirotope<R, N>::restrict_to_matroid
-(const Matroid<R, N>& matroid) const {
-	Chirotope<R, N> ret(*this);
-    for (auto i = 0; i < NR_INT32; i++) {
-        ret.plus[i] &= matroid.char_vector[i];
-        ret.minus[i] &= matroid.char_vector[i];
-
+constexpr Chirotope<R,N>& Chirotope<R, N>::read(const std::string& str) {
+    if (str.length() != NR_RTUPLES) throw std::invalid_argument("The input string is of incorrect length! "
+        "Input length: "+std::to_string(str.length())+", expected length: ("+std::to_string(N)+" "
+        "choose "+std::to_string(R)+") = "+std::to_string(NR_RTUPLES)+"."
+        " Input string: <"+str+">");
+    for (auto i = 0; i < NR_INT32 - 1; i++) {
+        for (auto c = 0; c < 32; c++) {
+            set(i, c, str[i * 32 + c]);
+        }
     }
-    return ret;
+    for (auto c = 0; c < NR_REMAINING_BITS; c++) {
+        set(NR_INT32 - 1, c, str[(NR_INT32 - 1) * 32 + c]);
+    }
+    return (*this);
 }
 
 template<int R, int N>
@@ -308,23 +325,6 @@ constexpr int Chirotope<R, N>::countbases() const {
         count += count_1bits(plus[i] | minus[i]);
     }
     return count;
-}
-
-template<int R, int N>
-constexpr Chirotope<R,N>& Chirotope<R, N>::read(const std::string& str) {
-    if (str.length() != NR_RTUPLES) throw std::invalid_argument("The input string is of incorrect length! "
-        "Input length: "+std::to_string(str.length())+", expected length: ("+std::to_string(N)+" "
-        "choose "+std::to_string(R)+") = "+std::to_string(NR_RTUPLES)+"."
-        " Input string: <"+str+">");
-    for (auto i = 0; i < NR_INT32 - 1; i++) {
-        for (auto c = 0; c < 32; c++) {
-            set(i, c, str[i * 32 + c]);
-        }
-    }
-    for (auto c = 0; c < NR_REMAINING_BITS; c++) {
-        set(NR_INT32 - 1, c, str[(NR_INT32 - 1) * 32 + c]);
-    }
-    return (*this);
 }
 
 template<int R, int N>
