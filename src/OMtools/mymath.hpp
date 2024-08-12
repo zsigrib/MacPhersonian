@@ -134,4 +134,35 @@ struct NchooseK {
         }
         return m;
     }()};
+    // If one writes the elements of `0..N-1` not present in the `i`th
+    // `k`-tuple right after this `k`-tuple in increasing order, is the 
+    // sign of the resulting permutation of `0..N-1` equal to `-`?
+    // This is answered by `is_dual_inverted[i]`.
+    constexpr static const auto is_dual_inverted{[]() constexpr{
+        std::array<bool, NR_RTUPLES> di{};
+        for (auto i = 0; i < NR_RTUPLES; i++) {
+            T sum = (k * (k-1)) / 2 + 1; // The +1 here just negates the end result.
+            for (auto t = 0; t < k; t++) {
+                sum += array[i][t];
+            }
+            di[i] = sum % 2;
+        }
+        return di;
+    }()};
+    // The `r`th lowest bit of `is_dual_inverted[idx]` is 1 if and only
+    // if `is_dual_inverted[idx * 32 + r]` is true.
+    constexpr static const auto is_dual_inverted_mask32{[]() constexpr{
+        std::array<uint32_t, NR_INT32> di{};
+        for (auto idx = 0; idx < NR_INT32 - 1; idx++) {
+            for (auto r = 0; r < 32; r++) {
+                di[idx] |= ((uint32_t)is_dual_inverted[idx * 32 + r]
+                    & (uint32_t)1) << r;
+            }
+        }
+        for (auto r = 0; r < NR_REMAINING_BITS; r++) {
+            di[NR_INT32 - 1] |= ((uint32_t)is_dual_inverted[(NR_INT32 - 1) * 32 + r]
+                &(uint32_t)1) << r;
+        }
+        return di;
+    }()};
 };
