@@ -47,6 +47,7 @@ std::istream& operator>>(std::istream&, Matroid<R, N>&);
 template<int R, int N>
 std::ifstream& operator>>(std::ifstream&, Matroid<R, N>&);
 
+// Represents a matroid of rank `R` on `N` elements.
 template<int R, int N>
 struct Matroid {
     // =============
@@ -61,7 +62,7 @@ struct Matroid {
     static constexpr int NR_INT32 = division_rounded_up(NR_RTUPLES, 32);
     // Number of bits used in the last 32-bit unsigned integer used to 
     // store the characteristic vector.
-    static constexpr int NR_REMAINING_BITS = NR_RTUPLES % 32;
+    static constexpr int NR_REMAINING_BITS = NR_RTUPLES - 32 * (NR_INT32 - 1);
     // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
     // evaluates at compile-time.
@@ -176,6 +177,7 @@ std::istream& operator>>(std::istream&, Chirotope<R, N>&);
 template<int R, int N>
 std::ifstream& operator>>(std::ifstream&, Chirotope<R, N>&);
 
+// Represents a chirotope of rank `R` on `N` elements.
 template<int R, int N>
 struct Chirotope
 {
@@ -191,7 +193,7 @@ struct Chirotope
     static constexpr int NR_INT32 = division_rounded_up(NR_RTUPLES, 32);
     // Number of bits used in the last 32-bit unsigned integer used to 
     // store the chirotope.
-    static constexpr int NR_REMAINING_BITS = NR_RTUPLES % 32;
+    static constexpr int NR_REMAINING_BITS = NR_RTUPLES - 32 * (NR_INT32 - 1);
     // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
     // evaluates at compile-time.
@@ -259,6 +261,31 @@ struct Chirotope
     // See also `restriction_to_matroid(...)` for a non-mutating version 
     // of this operation. 
     constexpr Chirotope& restrict_to_matroid(const Matroid<R, N>&);
+    // Delete the element specified by the input from this chirotope.
+    // This is an in-place operation: the deleted element is turned into
+    // a loop.
+    constexpr Chirotope& delete_elem(int);
+    // Construct a new chirotope equal to the deletion of the element
+    // specified by the input from this chirotope. The deleted element
+    // is turned into a loop.
+    constexpr Chirotope deletion_elem(int) const;
+    // Given a range-based-for-loop-iterable of integral types, delete all 
+    // elements specified by it form this chirotope. This is an in-place 
+    // operation: the deleted elements are turned into loops.
+    template<typename VectorT>
+    constexpr Chirotope& delete_elems(const VectorT&);
+    // Given a range-based-for-loop-iterable of integral types, delete all 
+    // elements specified by it form this chirotope and return the result
+    // as a new chirotope. The deleted elements are turned into loops.
+    template<typename VectorT>
+    constexpr Chirotope deletion_elems(const VectorT&) const;
+    // Given an integral input, change this chirotope by contracting the
+    // element specified by it. The contracted element is turned into a coloop.
+    constexpr Chirotope& contract_elem(int);
+    // Given an integral input, construct the contraction of this chirotope 
+    // with respect to the element specified by it. The contracted element is
+    // turned into a coloop.
+    constexpr Chirotope contraction_elem(int) const;
 
     // ===============================
     //   WRAPPED ACCESS TO VARIABLES

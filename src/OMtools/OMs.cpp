@@ -264,6 +264,75 @@ constexpr Chirotope<R, N>& Chirotope<R, N>::restrict_to_matroid
     return (*this);
 }
 
+template<int R, int N>
+constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elem(int elem) {
+	for (auto i = 0; i < NR_INT32; i++) {
+		plus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
+		minus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
+	}
+	return (*this);
+}
+
+template<int R, int N>
+constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elem(int elem) const {
+	Chirotope<R, N> ret;
+	for (auto i = 0; i < NR_INT32; i++) {
+		ret.plus[i] = plus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
+		ret.minus[i] = minus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
+	}
+	return ret;
+}
+
+template<int R, int N>
+template<typename VectorT>
+constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elems(const VectorT& elems) {
+	for (auto i = 0; i < NR_INT32; i++) {
+		uint32_t mask = 0;
+		for (auto elem: elems) {
+			static_assert(std::is_integral_v<decltype(elem)>);
+			mask |= RTUPLES_LIST::contained_mask32[elem][i];
+		}
+		plus[i] &= ~mask;
+		minus[i] &= ~mask;
+	}
+	return (*this);
+}
+
+template<int R, int N>
+template<typename VectorT>
+constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elems(const VectorT& elems) const {
+	Chirotope<R, N> ret;
+	for (auto i = 0; i < NR_INT32; i++) {
+		uint32_t mask = 0;
+		for (auto elem: elems) {
+			static_assert(std::is_integral_v<decltype(elem)>);
+			mask |= RTUPLES_LIST::contained_mask32[elem][i];
+		}
+		ret.plus[i] = plus[i] & ~mask;
+		ret.minus[i] = minus[i] & ~mask;
+	}
+	return ret;
+}
+
+template<int R, int N>
+constexpr Chirotope<R,N>& Chirotope<R, N>::contract_elem(int elem) {
+	for (auto i = 0; i < NR_INT32; i++) {
+		plus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
+		minus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
+	}
+	return (*this);
+}
+
+template<int R, int N>
+constexpr Chirotope<R, N> Chirotope<R, N>::contraction_elem(int elem) const {
+	Chirotope<R, N> ret;
+	for (auto i = 0; i < NR_INT32; i++) {
+		ret.plus[i] = plus[i] & RTUPLES_LIST::contained_mask32[elem][i];
+		ret.minus[i] = minus[i] & RTUPLES_LIST::contained_mask32[elem][i];
+	}
+	return ret;
+}
+
 // Here "idx >> 5" is just "idx / 32" and "idx & 31" is "idx % 32"
 
 template<int R, int N>
