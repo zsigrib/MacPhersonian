@@ -92,11 +92,21 @@ constexpr T Multiply<T>::applied(const T& to) const {
 }
 
 template<typename T>
+constexpr T Multiply_P0<T>::applied(const T& to) const {
+    T ret;
+    for (auto i = 0; i < T::NR_INT32; i++) {
+        ret.minus[i] = to.minus[i] & nonzeros[i];
+        ret.plus[i] = to.plus[i] & nonzeros[i];
+    }
+    return ret;
+}
+
+template<typename T>
 constexpr T Multiply_PM0<T>::applied(const T& to) const {
     T ret;
     for (auto i = 0; i < T::NR_INT32; i++) {
-        ret.minus[i] = ((to.minus[i] & ~this->minus[i]) | (to.plus[i] & this->minus[i])) & nonzeros[i];
-        ret.plus[i] = ((to.plus[i] & ~this->minus[i]) | (to.minus[i] & this->minus[i])) & nonzeros[i];
+        ret.minus[i] = ((to.minus[i] & ~minus[i]) | (to.plus[i] & minus[i])) & nonzeros[i];
+        ret.plus[i] = ((to.plus[i] & ~minus[i]) | (to.minus[i] & minus[i])) & nonzeros[i];
     }
     return ret;
 }
@@ -123,6 +133,27 @@ constexpr Multiply<T> Compose<Multiply<T>, Multiply<T>>::operator()(
 }
 
 template<typename T>
+constexpr Multiply_PM0<T> Compose<Multiply<T>, Multiply_P0<T>>::operator()(
+    const Multiply<T>& m1, const Multiply_P0<T>& m0
+) {
+    return {m1.minus & m0.nonzeros, m0.nonzeros};
+}
+
+template<typename T>
+constexpr Multiply_PM0<T> Compose<Multiply_P0<T>, Multiply<T>>::operator()(
+    const Multiply_P0<T>& m1, const Multiply<T>& m0
+) {
+    return {m1.nonzeros & m0.minus, m1.nonzeros};
+}
+
+template<typename T>
+constexpr Multiply_P0<T> Compose<Multiply_P0<T>, Multiply_P0<T>>::operator()(
+    const Multiply_P0<T>& m1, const Multiply_P0<T>& m0
+) {
+    return {m1.nonzeros & m0.nonzeros};
+}
+
+template<typename T>
 constexpr Multiply_PM0<T> Compose<Multiply<T>, Multiply_PM0<T>>::operator()(
     const Multiply<T>& m1, const Multiply_PM0<T>& m0
 ) {
@@ -134,6 +165,20 @@ constexpr Multiply_PM0<T> Compose<Multiply_PM0<T>, Multiply<T>>::operator()(
     const Multiply_PM0<T>& m1, const Multiply<T>& m0
 ) {
     return {m1.minus ^ m0.minus, m1.nonzeros};
+}
+
+template<typename T>
+constexpr Multiply_PM0<T> Compose<Multiply_P0<T>, Multiply_PM0<T>>::operator()(
+    const Multiply_P0<T>& m1, const Multiply_PM0<T>& m0
+) {
+    return {m1.nonzeros & m0.minus, m1.nonzeros & m0.nonzeros};
+}
+
+template<typename T>
+constexpr Multiply_PM0<T> Compose<Multiply_PM0<T>, Multiply_P0<T>>::operator()(
+    const Multiply_PM0<T>& m1, const Multiply_P0<T>& m0
+) {
+    return {m1.minus & m0.nonzeros, m1.nonzeros & m0.nonzeros};
 }
 
 template<typename T>
@@ -153,6 +198,14 @@ Compose<Multiply<T1>, PushForward<T0, T1>>::operator()(
 }
 
 template<typename T0, typename T1>
+constexpr composes_to<Multiply_P0<T1>, PushForward<T0, T1>>
+Compose<Multiply_P0<T1>, PushForward<T0, T1>>::operator()(
+    const Multiply_P0<T1>& m, const PushForward<T0, T1>& pf
+) {
+    return {pf, {pull_back(pf.function, m.nonzeros)}};
+}
+
+template<typename T0, typename T1>
 constexpr composes_to<Multiply_PM0<T1>, PushForward<T0, T1>>
 Compose<Multiply_PM0<T1>, PushForward<T0, T1>>::operator()(
     const Multiply_PM0<T1>& m, const PushForward<T0, T1>& pf
@@ -169,6 +222,14 @@ Compose<PullBack<T0, T1>, Multiply<T0>>::operator()(
     const PullBack<T0, T1>& pb, const Multiply<T0>& m
 ) {
     return {{pull_back(pb.function, m.minus)}, pb};
+}
+
+template<typename T0, typename T1>
+constexpr composes_to<PullBack<T0, T1>, Multiply_P0<T0>>
+Compose<PullBack<T0, T1>, Multiply_P0<T0>>::operator()(
+    const PullBack<T0, T1>& pb, const Multiply_P0<T0>& m
+) {
+    return {{pull_back(pb.function, m.nonzeros)}, pb};
 }
 
 template<typename T0, typename T1>
@@ -219,7 +280,7 @@ Compose<PullBack<T1, T2>, PushForward<T0, T1>>::operator()(
         nonzeros.set_bit(idx, x != -1);
         f[idx] = (x == -1)? 0 : x;
     }
-    return {{{}, nonzeros}, {{f}}};
+    return {{nonzeros}, {{f}}};
 }
 
 

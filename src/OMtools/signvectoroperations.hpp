@@ -346,19 +346,39 @@ struct Multiply: public Operation<T,T> {
 };
 
 template<typename T>
-struct Multiply_PM0: public Multiply<T> {
+struct Multiply_P0: public Operation<T,T> {
     constexpr static const int L = T::LENGTH;
 
     bit_vector<L> nonzeros;
 
-    constexpr Multiply_PM0(): Multiply<T>(), nonzeros() {}
+    constexpr Multiply_P0(): nonzeros{} {}
+    constexpr Multiply_P0(
+        const bit_vector<L>& nz
+    ): nonzeros(nz) {}
+    constexpr Multiply_P0( // Do we need this?
+        const Multiply<T>& m
+    ): nonzeros(m.minus) {}
+
+    constexpr T applied(const T&) const;
+    constexpr T operator*(const T& arg) const { return applied(arg); }
+    constexpr T operator()(const T& arg) const { return applied(arg); }
+};
+
+template<typename T>
+struct Multiply_PM0: public Operation<T,T> {
+    constexpr static const int L = T::LENGTH;
+
+    bit_vector<L> minus;
+    bit_vector<L> nonzeros;
+
+    constexpr Multiply_PM0(): minus{}, nonzeros{} {}
     constexpr Multiply_PM0(
         const bit_vector<L>& m, 
         const bit_vector<L>& nz
-    ): Multiply<T>(m), nonzeros(nz) {}
+    ): minus(m), nonzeros(nz) {}
     constexpr Multiply_PM0(
         const Multiply<T>& m
-    ): Multiply<T>(m), nonzeros(m.minus) {}
+    ): minus(m.minus), nonzeros(m.minus) {}
 
     constexpr T applied(const T&) const;
     constexpr T operator*(const T& arg) const { return applied(arg); }
@@ -411,6 +431,39 @@ struct Compose<Multiply<T>, Multiply<T>> {
 };
 
 template<typename T>
+struct ComposesTo<Multiply<T>, Multiply_P0<T>> {
+    using type = Multiply_PM0<T>;
+};
+template<typename T>
+struct Compose<Multiply<T>, Multiply_P0<T>> {
+    constexpr static Multiply_PM0<T> operator()(
+        const Multiply<T>&, const Multiply_P0<T>&
+    );
+};
+
+template<typename T>
+struct ComposesTo<Multiply_P0<T>, Multiply<T>> {
+    using type = Multiply_PM0<T>;
+};
+template<typename T>
+struct Compose<Multiply_P0<T>, Multiply<T>> {
+    constexpr static Multiply_PM0<T> operator()(
+        const Multiply_P0<T>&, const Multiply<T>&
+    );
+};
+
+template<typename T>
+struct ComposesTo<Multiply_P0<T>, Multiply_P0<T>> {
+    using type = Multiply_P0<T>;
+};
+template<typename T>
+struct Compose<Multiply_P0<T>, Multiply_P0<T>> {
+    constexpr static Multiply_P0<T> operator()(
+        const Multiply_P0<T>&, const Multiply_P0<T>&
+    );
+};
+
+template<typename T>
 struct ComposesTo<Multiply<T>, Multiply_PM0<T>> {
     using type = Multiply_PM0<T>;
 };
@@ -429,6 +482,28 @@ template<typename T>
 struct Compose<Multiply_PM0<T>, Multiply<T>> {
     constexpr static Multiply_PM0<T> operator()(
         const Multiply_PM0<T>&, const Multiply<T>&
+    );
+};
+
+template<typename T>
+struct ComposesTo<Multiply_P0<T>, Multiply_PM0<T>> {
+    using type = Multiply_PM0<T>;
+};
+template<typename T>
+struct Compose<Multiply_P0<T>, Multiply_PM0<T>> {
+    constexpr static Multiply_PM0<T> operator()(
+        const Multiply_P0<T>&, const Multiply_PM0<T>&
+    );
+};
+
+template<typename T>
+struct ComposesTo<Multiply_PM0<T>, Multiply_P0<T>> {
+    using type = Multiply_PM0<T>;
+};
+template<typename T>
+struct Compose<Multiply_PM0<T>, Multiply_P0<T>> {
+    constexpr static Multiply_PM0<T> operator()(
+        const Multiply_PM0<T>&, const Multiply_P0<T>&
     );
 };
 
@@ -455,6 +530,17 @@ struct Compose<Multiply<T1>, PushForward<T0, T1>> {
 };
 
 template<typename T0, typename T1>
+struct ComposesTo<Multiply_P0<T1>, PushForward<T0, T1>> {
+    using type = FormalProductOfOperations<PushForward<T0, T1>, Multiply_P0<T0>>;
+};
+template<typename T0, typename T1>
+struct Compose<Multiply_P0<T1>, PushForward<T0, T1>> {
+    constexpr static composes_to<Multiply_P0<T1>, PushForward<T0, T1>> operator()(
+        const Multiply_P0<T1>&, const PushForward<T0, T1>&
+    );
+};
+
+template<typename T0, typename T1>
 struct ComposesTo<Multiply_PM0<T1>, PushForward<T0, T1>> {
     using type = FormalProductOfOperations<PushForward<T0, T1>, Multiply_PM0<T0>>;
 };
@@ -473,6 +559,17 @@ template<typename T0, typename T1>
 struct Compose<PullBack<T0, T1>, Multiply<T0>> {
     constexpr static composes_to<PullBack<T0, T1>, Multiply<T0>> operator()(
         const PullBack<T0, T1>&, const Multiply<T0>&
+    );
+};
+
+template<typename T0, typename T1>
+struct ComposesTo<PullBack<T0,T1>, Multiply_P0<T0>> {
+    using type = FormalProductOfOperations<Multiply_P0<T1>, PullBack<T0, T1>>;
+};
+template<typename T0, typename T1>
+struct Compose<PullBack<T0, T1>, Multiply_P0<T0>> {
+    constexpr static composes_to<PullBack<T0, T1>, Multiply_P0<T0>> operator()(
+        const PullBack<T0, T1>&, const Multiply_P0<T0>&
     );
 };
 
@@ -511,7 +608,7 @@ struct Compose<PullBack<T1, T2>, PullBack<T0, T1>> {
 
 template<typename T0, typename T1, typename T2>
 struct ComposesTo<PullBack<T1, T2>, PushForward<T0, T1>> {
-    using type = FormalProductOfOperations<Multiply_PM0<T2>, PullBack<T0, T2>>;
+    using type = FormalProductOfOperations<Multiply_P0<T2>, PullBack<T0, T2>>;
 };
 template<typename T0, typename T1, typename T2>
 struct Compose<PullBack<T1, T2>, PushForward<T0, T1>> {
