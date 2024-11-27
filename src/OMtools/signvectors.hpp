@@ -285,6 +285,8 @@ struct sign_vector {
 
     // Returns whether all signs in this signvector are zero.
     constexpr bool is_zero() const;
+    // Returns the number of nonzero signs in this signvector.
+    constexpr int count_nonzero() const;
     // Returns true if wherever the other signvector is nonzero,
     // the two signvectors agree.
     constexpr bool signwise_greater_than(const sign_vector&) const;

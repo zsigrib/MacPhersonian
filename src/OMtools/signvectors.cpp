@@ -385,6 +385,11 @@ constexpr bool sign_vector<L>::is_zero() const {
 }
 
 template<int L>
+constexpr int sign_vector<L>::count_nonzero() const {
+    return plus.count_ones() + minus.count_ones();
+}
+
+template<int L>
 constexpr bool sign_vector<L>::signwise_greater_than(
     const sign_vector<L>& other
 ) const {

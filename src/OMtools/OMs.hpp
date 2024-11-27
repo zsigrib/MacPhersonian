@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstdint>
 #include "mymath.hpp"
+#include "signvectors.hpp"
 
 // =======
 // HELPERS 
@@ -49,33 +50,21 @@ std::ifstream& operator>>(std::ifstream&, Matroid<R, N>&);
 
 // Represents a matroid of rank `R` on `N` elements.
 template<int R, int N>
-struct Matroid {
+struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // =============
     //   CONSTANTS
     // =============
 
     // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
     // subsets of `0..N-1`.
-    static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
-    // Number of (unsigned) 32-bit integers needed to have 1 bit for each 
-    // `R` element subset of `0..N-1`.
-    static constexpr int NR_INT32 = division_rounded_up(NR_RTUPLES, 32);
-    // Number of bits used in the last 32-bit unsigned integer used to 
-    // store the characteristic vector.
-    static constexpr int NR_REMAINING_BITS = NR_RTUPLES - 32 * (NR_INT32 - 1);
+    constexpr static const int NR_RTUPLES = binomial_coefficient(N, R);
+
     // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
     // evaluates at compile-time.
     using RTUPLES_LIST = NchooseK<int, N, R>;
-
-    // =============
-    //   VARIABLES
-    // =============
-
-    // The `c`th least significant bit of `char_vector[i]` is 1 if and 
-    // only if the `R`-tuple stored in `RTUPLES_LIST::array[i * 32 + c]`
-    // is a basis of the matroid.
-    uint32_t char_vector[NR_INT32];
+    // The base class of `Matroid<R,N>` is `bit_vector<binomial_coefficient(N, R)>`
+    using BASE = bit_vector<NR_RTUPLES>;
 
     // ================
     //   CONSTRUCTORS
@@ -84,10 +73,13 @@ struct Matroid {
     // Initializes `char_vector` to an array of 0s. Note that this
     // does not satisfy the matroid axioms, so it is not a valid
     // matroid.
-    constexpr Matroid(): char_vector{} {}
+    constexpr Matroid(): BASE{} {}
     // Constructs a matroid from a string, by reading a 0-1 characteristic
     // vector, analogously to `read()`.
-    constexpr Matroid(const std::string&);
+    constexpr Matroid(const std::string& from): BASE{} 
+    { read(from); }
+
+    constexpr Matroid(const BASE& other): BASE(other) {} 
 
     // ===============================
     //   WRAPPED ACCESS TO VARIABLES
@@ -95,31 +87,30 @@ struct Matroid {
     
     // Returns whether the `R`-tuple stored at the given index within 
     // `RTUPLES_LIST::array` is a basis of this matroid.
-    constexpr bool is_basis(int) const;
+    constexpr bool is_basis(int idx) const 
+    { return BASE::get_bit(idx); }
     // Change the matroid such that the `R`-tuple stored at the given
     // index withing `RTUPLES_LIST::array` is a basis if and only if
     // the `bool` argument is `true`.
-    constexpr Matroid& set_basis(int, bool);
-    // Set the `r`th bit of the `i`th integer of `char_vector` to the given
-    // value (`1` if `true`, `0` if `false`).
-    constexpr Matroid& set(int, int, bool);
-    // Set the `r`th bit of the `i`th integer of `char_vector` to be 0 or 1
-    // depending on the `char` argument being `'0'` or `'1'`.
-    constexpr Matroid& set_using_char(int, int, char);
+    constexpr Matroid& set_basis(int idx, bool value) 
+    { BASE::set_bit(idx, value); return *this; }
     // Given a string of `'0'` and `'1'` characters of length `NR_RTUPLES`,
     // sets this matroid to be the matroid prescribed by it: this matroid
     // will have the `R`-tuple stored in RTUPLES_LIST::array[i]` as a basis
     // if and only if the `i`th character of the given string is `'1'`.
-    constexpr Matroid& read(const std::string&);
+    constexpr Matroid& read(const std::string& from) 
+    { BASE::read(from); return *this; }
 
     // ===================
     //   COMPLEX QUERIES
     // ===================
 
     // Returns `true` if this matroid has no bases.
-    constexpr bool is_zero() const;
+    constexpr bool is_zero() const 
+    { return BASE::is_zero(); }
     // Return the number of bases of the matroid.
-    constexpr int countbases() const;
+    constexpr int countbases() const 
+    { return BASE::count_ones(); }
     // Returns whether the given element is a loop in this matroid.
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this matroid.
@@ -127,15 +118,20 @@ struct Matroid {
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
-    constexpr bool weak_maps_to(const Matroid&) const;
+    constexpr bool weak_maps_to(const Matroid& other) const
+    { return BASE::bitwise_greater_than(other); }
     // Returns whether this matroid is equal to the other one.
-    constexpr bool operator==(const Matroid&) const;
+    constexpr bool operator==(const Matroid& other) const 
+    { return BASE::operator==(other); }
     // Returns whether this matroid is not equal to the other one.
-    constexpr bool operator!=(const Matroid&) const;
+    constexpr bool operator!=(const Matroid& other) const
+    { return BASE::operator!=(other); }
     // Returns whether the other matroid weak maps to this one; see `weak_maps_to()`.
-    constexpr bool operator<=(const Matroid&) const;
+    constexpr bool operator<=(const Matroid& other) const 
+    { return BASE::operator<=(other); }
     // Returns whether this matroid weak maps to the other one; see `weak_maps_to()`.
-    constexpr bool operator>=(const Matroid&) const;
+    constexpr bool operator>=(const Matroid& other) const
+    { return BASE::operator>=(other); }
 
     // ========================
     //   WRITING AND PRINTING
@@ -179,8 +175,7 @@ std::ifstream& operator>>(std::ifstream&, Chirotope<R, N>&);
 
 // Represents a chirotope of rank `R` on `N` elements.
 template<int R, int N>
-struct Chirotope
-{
+struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // =============
     //   CONSTANTS
     // =============
@@ -188,29 +183,13 @@ struct Chirotope
     // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
     // subsets of `0..N-1`.
     static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
-    // Number of (unsigned) 32-bit integers needed to have 1 bit for each 
-    // `R` element subset of `0..N-1`.
-    static constexpr int NR_INT32 = division_rounded_up(NR_RTUPLES, 32);
-    // Number of bits used in the last 32-bit unsigned integer used to 
-    // store the chirotope.
-    static constexpr int NR_REMAINING_BITS = NR_RTUPLES - 32 * (NR_INT32 - 1);
+
     // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
     // evaluates at compile-time.
     using RTUPLES_LIST = NchooseK<int, N, R>;
-    
-    // =============
-    //   VARIABLES
-    // =============
-
-    // The `c`th least significant bit of `plus[i]` is 1 if and only if 
-    // the chirotope evaluates to `+` on the `R`-tuple stored in
-    // `RTUPLES_LIST::array[i * 32 + c]`.
-    uint32_t plus[NR_INT32];
-    // The `c`th least significant bit of `minus[i]` is 1 if and only if 
-    // the chirotope evaluates to `-` on the `R`-tuple stored in
-    // `RTUPLES_LIST::array[i * 32 + c]`.
-    uint32_t minus[NR_INT32];
+    // The base class of `Chirotope<R,N>` is `sign_vector<binomial_coefficient(N, R)>`
+    using BASE = sign_vector<NR_RTUPLES>;
 
     // ================
     //   CONSTRUCTORS
@@ -219,9 +198,12 @@ struct Chirotope
     // Initializes `plus` and `minus` to arrays of 0s. Note that this
     // does not satisfy chirotope axiom (B0), so it is not a valid
     // chirotope.
-    constexpr Chirotope(): plus{}, minus{} {}
+    constexpr Chirotope(): BASE{} {}
     // Constructs a chirotope from a string, analogously to `read()`.
-    constexpr Chirotope(const std::string&);
+    constexpr Chirotope(const std::string& from): BASE{}
+    { read(from); }
+
+    constexpr Chirotope(const BASE& from): BASE(from) {}
 
     // =====================================
     //   CONSTRUCT NEW (ORIENTED) MATROIDS
@@ -234,7 +216,8 @@ struct Chirotope
     // - `c[i] == '-'` implies `mc[i] == '+'`. 
     //
     // See also `invert()` for an in-place version of this operation.
-    constexpr Chirotope inverse() const;
+    constexpr Chirotope inverse() const
+    { return Chirotope(BASE::inverse()); }
     // Changes this chirotope to be its inverse, i.e. if the original
     // version of this chirotope is denoted by `c` and the post-operation
     // state by `mc` then
@@ -243,10 +226,15 @@ struct Chirotope
     // - `c[i] == '-'` implies `mc[i] == '+'`.
     //
     // See also `inverse()` for a non-mutating version of this operation.
-    constexpr Chirotope& invert();
+    constexpr Chirotope& invert()
+    { BASE::invert(); return *this;}
     // Return the underlying matroid of this chirotope, i.e. the set of
     // bases of this chirotope.
     constexpr Matroid<R, N> underlying_matroid() const;
+    
+    // TODO: the below operations should be replaced by sign-vector
+    // operations.
+    
     // Return a copy of this chirotope which is set to `0` on all non-bases 
     // of the given matroid. Note that the resulting object might not satisfy 
     // the chirotope axioms.
@@ -293,52 +281,59 @@ struct Chirotope
 
     // Returns whether the chirotope evaluates to `+` on the `R`-tuple
     // stored at the given index within `RTUPLES_LIST::array`.
-    constexpr bool get_plus(int) const;
+    constexpr bool get_plus(int idx) const 
+    { return BASE::plus.get_bit(idx); }
     // Returns whether the chirotope evaluates to `-` on the `R`-tuple
     // stored at the given index within `RTUPLES_LIST::array`.
-    constexpr bool get_minus(int) const;
+    constexpr bool get_minus(int idx) const
+    { return BASE::minus.get_bit(idx); }
     // Returns whether the chirotope is non-zero on the `R`-tuple
     // stored at the given index within `RTUPLES_LIST::array`.
-    constexpr bool is_basis(int) const;
-    // Evaluates the chirotope on the `R`-tuple in `RTUPLES_LIST::array`
-    // at the given index. Possible return values are `'0'`, `'+'`, and
-    // `'-'`. Identival to `evaluate(int)`.
-    constexpr char get(int) const;
+    constexpr bool is_basis(int idx) const
+    { return BASE::is_nonzero(idx); }
     // Evaluates the chirotope on the `R`-tuple in `RTUPLES_LIST::array`
     // at the given index. Possible return values are `'0'`, `'+'`, and
     // `'-'`. Identival to `get(int)`.
-    constexpr char evaluate(int) const;
+    constexpr char evaluate(int idx) const
+    { return BASE::get_char(idx); }
     // Sets the appropriate bit of the appropriate integer in `plus`.
     // See the documentation of `plus`.
-    constexpr Chirotope& set_plus(int, bool);
+    constexpr Chirotope& set_plus(int idx, bool value)
+    { BASE::plus.set_bit(idx, value); return *this; }
     // Sets the appropriate bit of the appropriate integer in `minus`.
     // See the documentation of `minus`.
-    constexpr Chirotope& set_minus(int, bool);
+    constexpr Chirotope& set_minus(int idx, bool value)
+    { BASE::minus.set_bit(idx, value); return *this; }
     // Makes the chirotope evaluate for the `R`-tuple in 
     // `RTUPLES_LIST::array` at the given index to `0`, `+`, or `-`,
     // if the given `char` is `'0'`, `'+'`, or `'-'` respectively.
-    constexpr Chirotope& set(int, char);
+    constexpr Chirotope& set(int idx, char c)
+    { BASE::set_sign(idx, c); return *this;}
     // Makes the chirotope evaluate for the `R`-tuple corresponding
     // to the `r`th bit of the `i`th integer of `plus` and `minus`
     // to `0`, `+`, or `-`, if the given `char` is `'0'`, `'+'`, or 
     // `'-'` respectively.
-    constexpr Chirotope& set(int, int, char);
+    constexpr Chirotope& set(int i, int r, char c)
+    { BASE::set_sign(i, r, c); return *this; }
     // Given a string of `'+'`, `'-'`, and `'0'` characters of length
     // `NR_RTUPLES`, sets this chirotope to have the values prescribed
     // by it: the chirotope will evaluate to the value specified by the
     // `i`th character of the string at the `R`-tuple stored in
     // `RTUPLES_LIST::array[i]`.
-    constexpr Chirotope& read(const std::string&);
+    constexpr Chirotope& read(const std::string& from)
+    { BASE::read(from); return *this; }
     
     // ===================
     //   COMPLEX QUERIES
     // ===================
 
     // Returns `true` if this chirotope is constant zero.
-    constexpr bool is_zero() const;
+    constexpr bool is_zero() const
+    { return BASE::is_zero(); }
     // Returns the number of bases of the chirotope, i.e. the number
     // of distinct `R`-tuples on which it evaluates to a non-zero value.
-    constexpr int countbases() const;
+    constexpr int countbases() const
+    { return BASE::count_nonzero(); }
     // Returns whether the given element is a loop in this chirotope.
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this chirotope.
@@ -347,21 +342,24 @@ struct Chirotope
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given
     // `R`-tuple.
-    constexpr bool weak_maps_to(const Chirotope&) const;
+    constexpr bool weak_maps_to(const Chirotope& other) const
+    { return BASE::signwise_greater_than(other); }
     // Return whether the underlying matroid of this chirotope weak maps
     // to the given matroid; this happens if every basis of the matroid
     // is also a basis of this chirotope.
-    constexpr bool weak_maps_to(const Matroid<R, N>&) const;
+    constexpr bool weak_maps_to(const Matroid<R, N>& matroid) const;
     // Returns whether the oriented matroid defined by this chirotope 
     // weak maps to the oriented matroid defined by the other chirotope.
     // This happens if and only if this chirotope weak maps to the
     // other chirotope or this chirotope weak maps to the inverse of
     // the other chirotope (see `inverse` for details).
-    constexpr bool OM_weak_maps_to(const Chirotope&) const;
+    constexpr bool OM_weak_maps_to(const Chirotope& other) const;
     // Returns whether this chirotope is equal to the other one.
-    constexpr bool operator==(const Chirotope&) const;
+    constexpr bool operator==(const Chirotope& other) const
+    { return BASE::operator==(other); }
     // Returns whether this chirotope is not equal to the other one.
-    constexpr bool operator!=(const Chirotope&) const;
+    constexpr bool operator!=(const Chirotope& other) const
+    { return BASE::operator!=(other); }
     // Returns whether the oriented matroid defined by this chirotope
     // is the same as the oriented matroid defined by the other
     // chirotope. This happens if and only if they are equal, or inverses

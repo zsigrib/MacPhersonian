@@ -20,86 +20,12 @@ constexpr int count_1bits(uint32_t n)
 // Matroid<R, N>
 // =============
 
-template<int R, int N>
-constexpr Matroid<R, N>::Matroid(const std::string& from): char_vector{} {
-    read(from);
-}
-
 // Here "idx >> 5" is just "idx / 32" and "idx & 31" is "idx % 32"
 
 template<int R, int N>
-constexpr bool Matroid<R, N>::is_basis(int idx) const {
-    return char_vector[idx >> 5] & ((uint32_t)1 << (idx & 31));
-}
-
-template<int R, int N>
-constexpr Matroid<R, N>& Matroid<R, N>::set_basis(int idx, bool basis) {
-    char_vector[idx >> 5] = char_vector[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(basis) << (idx & 31);
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Matroid<R, N>& Matroid<R, N>::set(int i, int r, bool basis) {
-    char_vector[i] = char_vector[i] & ~((uint32_t)1 << r) | uint32_t(basis) << r;
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Matroid<R, N>& Matroid<R, N>::set_using_char(int i, int r, char c) {
-    switch (c) {
-    case '0':
-        char_vector[i] &= ~((uint32_t)1 << r);
-        break;
-    case '1':
-        char_vector[i] |= (uint32_t)1 << r;
-        break;
-    default:
-        throw std::invalid_argument("Matroid::read(...) only accepts 0-1 "
-        "sequences as input. This input string contained the character '"
-        +std::to_string(c)+"'.");
-        break;
-    }
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Matroid<R, N>& Matroid<R, N>::read(const std::string& from) {
-    if (from.length() != NR_RTUPLES) throw std::invalid_argument("The input string is of incorrect length! "
-        "Input length: "+std::to_string(from.length())+", expected length: ("+std::to_string(N)+" "
-        "choose "+std::to_string(R)+") = "+std::to_string(NR_RTUPLES)+"."
-        " Input string: <"+from+">");
-    for (auto i = 0; i < NR_INT32 - 1; i++) {
-        for (auto r = 0; r < 32; r++) {
-            set_using_char(i, r, from[i * 32 + r]);
-        }
-    }
-    for (auto r = 0; r < NR_REMAINING_BITS; r++) {
-        set_using_char(NR_INT32 - 1, r, from[(NR_INT32 - 1) * 32 + r]);
-    }
-    return (*this);
-}
-
-template<int R, int N>
-constexpr bool Matroid<R, N>::is_zero() const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (char_vector[i] != 0) return true;
-    }
-    return false;
-}
-
-template<int R, int N>
-constexpr int Matroid<R, N>::countbases() const {
-    int count = 0;
-    for (auto i = 0; i < NR_INT32; i++) {
-        count += count_1bits(char_vector[i]);
-    }
-    return count;
-}
-
-template<int R, int N>
 constexpr bool Matroid<R, N>::is_loop(int element) const {
-	for (auto i = 0; i < NR_INT32; i++) {
-		if (char_vector[i] & RTUPLES_LIST::contained_mask32[element][i])
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		if (BASE::bits[i] & RTUPLES_LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -107,83 +33,21 @@ constexpr bool Matroid<R, N>::is_loop(int element) const {
 
 template<int R, int N>
 constexpr bool Matroid<R, N>::is_coloop(int element) const {
-	for (auto i = 0; i < NR_INT32; i++) {
-		if (char_vector[i] & ~RTUPLES_LIST::contained_mask32[element][i])
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		if (BASE::bits[i] & ~RTUPLES_LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
 }
 
 template<int R, int N>
-constexpr bool Matroid<R, N>::weak_maps_to(const Matroid& other) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (~char_vector[i] & other.char_vector[i]) return false;
-    }
-    return true;
-}
-
-template<int R, int N>
-constexpr bool Matroid<R, N>::operator==(const Matroid& other) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (char_vector[i] != other.char_vector[i]) return false;
-    }
-    return true;
-}
-
-template<int R, int N>
-constexpr bool Matroid<R, N>::operator!=(const Matroid& other) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (char_vector[i] != other.char_vector[i]) return true;
-    }
-    return false;
-}
-
-template<int R, int N>
-constexpr bool Matroid<R, N>::operator<=(const Matroid& other) const {
-    return other.weak_maps_to(*this);
-}
-
-template<int R, int N>
-constexpr bool Matroid<R, N>::operator>=(const Matroid& other) const {
-    return weak_maps_to(other);
-}
-
-template<int R, int N>
 std::ostream& operator<<(std::ostream& os, const Matroid<R, N>& matroid) {
-    for (auto i = 0; i < matroid.NR_INT32 - 1; i++) {
-        for (auto r = 0; r < 32; r++) {
-            if (matroid.char_vector[i] & ((uint32_t)1 << r))
-                os << '1';
-            else
-                os << '0';
-        }
-    }
-    for (auto r = 0; r < matroid.NR_REMAINING_BITS; r++) {
-        if (matroid.char_vector[matroid.NR_INT32 - 1] & ((uint32_t)1 << r))
-            os << '1';
-        else
-            os << '0';
-    }
-    return os;
+    return os << static_cast<const Matroid<R, N>::BASE&>(matroid);
 }
 
 template<int R, int N>
 std::ofstream& operator<<(std::ofstream& of, const Matroid<R, N>& matroid) {
-    for (auto i = 0; i < matroid.NR_INT32 - 1; i++) {
-        for (auto r = 0; r < 32; r++) {
-            if (matroid.char_vector[i] & ((uint32_t)1 << r))
-                of << '1';
-            else
-                of << '0';
-        }
-    }
-    for (auto r = 0; r < matroid.NR_REMAINING_BITS; r++) {
-        if (matroid.char_vector[matroid.NR_INT32 - 1] & ((uint32_t)1 << r))
-            of << '1';
-        else
-            of << '0';
-    }
-    return of;
+    return of << static_cast<const Matroid<R, N>::BASE&>(matroid);
 }
 
 template<int R, int N>
@@ -207,36 +71,10 @@ std::ifstream& operator>>(std::ifstream& ifs, Matroid<R, N>& matroid) {
 // ===============
 
 template<int R, int N>
-constexpr Chirotope<R, N>::Chirotope(const std::string& from): plus{}, minus{} {
-    read(from);
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N> Chirotope<R,N>::inverse() const {
-    auto chi = Chirotope<R, N>();
-    for (auto i = 0; i < NR_INT32; i++) {
-        chi.plus[i] = minus[i];
-        chi.minus[i] = plus[i];
-    }
-    return chi;
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::invert() {
-	uint32_t temp;
-	for (auto i = 0; i < NR_INT32; i++) {
-		temp = plus[i];
-		plus[i] = minus[i];
-		minus[i] = temp;
-	}
-	return (*this);
-}
-
-template<int R, int N>
 constexpr Matroid<R, N> Chirotope<R, N>::underlying_matroid() const {
     Matroid<R, N> matroid;
-    for (auto i = 0; i < NR_INT32; i++) {
-        matroid.char_vector[i] = plus[i] | minus[i];
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        matroid.bits[i] = BASE::plus[i] | BASE::minus[i];
     }
     return matroid;
 }
@@ -245,10 +83,9 @@ template<int R, int N>
 constexpr Chirotope<R, N> Chirotope<R, N>::restriction_to_matroid
 (const Matroid<R, N>& matroid) const {
 	Chirotope<R, N> ret(*this);
-    for (auto i = 0; i < NR_INT32; i++) {
-        ret.plus[i] &= matroid.char_vector[i];
-        ret.minus[i] &= matroid.char_vector[i];
-
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        ret.plus[i] &= matroid.bits[i];
+        ret.minus[i] &= matroid.bits[i];
     }
     return ret;
 }
@@ -256,19 +93,18 @@ constexpr Chirotope<R, N> Chirotope<R, N>::restriction_to_matroid
 template<int R, int N>
 constexpr Chirotope<R, N>& Chirotope<R, N>::restrict_to_matroid
 (const Matroid<R, N>& matroid) {
-    for (auto i = 0; i < NR_INT32; i++) {
-        plus[i] &= matroid.char_vector[i];
-        minus[i] &= matroid.char_vector[i];
-
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        BASE::plus[i] &= matroid.bits[i];
+        BASE::minus[i] &= matroid.bits[i];
     }
     return (*this);
 }
 
 template<int R, int N>
 constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elem(int elem) {
-	for (auto i = 0; i < NR_INT32; i++) {
-		plus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
-		minus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		BASE::plus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
+		BASE::minus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
 	}
 	return (*this);
 }
@@ -276,9 +112,9 @@ constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elem(int elem) {
 template<int R, int N>
 constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elem(int elem) const {
 	Chirotope<R, N> ret;
-	for (auto i = 0; i < NR_INT32; i++) {
-		ret.plus[i] = plus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
-		ret.minus[i] = minus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		ret.plus[i] = BASE::plus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
+		ret.minus[i] = BASE::minus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
 	}
 	return ret;
 }
@@ -286,14 +122,14 @@ constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elem(int elem) const {
 template<int R, int N>
 template<typename VectorT>
 constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elems(const VectorT& elems) {
-	for (auto i = 0; i < NR_INT32; i++) {
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
 		uint32_t mask = 0;
 		for (auto elem: elems) {
 			static_assert(std::is_integral_v<decltype(elem)>);
 			mask |= RTUPLES_LIST::contained_mask32[elem][i];
 		}
-		plus[i] &= ~mask;
-		minus[i] &= ~mask;
+		BASE::plus[i] &= ~mask;
+		BASE::minus[i] &= ~mask;
 	}
 	return (*this);
 }
@@ -302,23 +138,23 @@ template<int R, int N>
 template<typename VectorT>
 constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elems(const VectorT& elems) const {
 	Chirotope<R, N> ret;
-	for (auto i = 0; i < NR_INT32; i++) {
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
 		uint32_t mask = 0;
 		for (auto elem: elems) {
 			static_assert(std::is_integral_v<decltype(elem)>);
 			mask |= RTUPLES_LIST::contained_mask32[elem][i];
 		}
-		ret.plus[i] = plus[i] & ~mask;
-		ret.minus[i] = minus[i] & ~mask;
+		ret.plus[i] = BASE::plus[i] & ~mask;
+		ret.minus[i] = BASE::minus[i] & ~mask;
 	}
 	return ret;
 }
 
 template<int R, int N>
 constexpr Chirotope<R,N>& Chirotope<R, N>::contract_elem(int elem) {
-	for (auto i = 0; i < NR_INT32; i++) {
-		plus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
-		minus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		BASE::plus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
+		BASE::minus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
 	}
 	return (*this);
 }
@@ -326,9 +162,9 @@ constexpr Chirotope<R,N>& Chirotope<R, N>::contract_elem(int elem) {
 template<int R, int N>
 constexpr Chirotope<R, N> Chirotope<R, N>::contraction_elem(int elem) const {
 	Chirotope<R, N> ret;
-	for (auto i = 0; i < NR_INT32; i++) {
-		ret.plus[i] = plus[i] & RTUPLES_LIST::contained_mask32[elem][i];
-		ret.minus[i] = minus[i] & RTUPLES_LIST::contained_mask32[elem][i];
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		ret.plus[i] = BASE::plus[i] & RTUPLES_LIST::contained_mask32[elem][i];
+		ret.minus[i] = BASE::minus[i] & RTUPLES_LIST::contained_mask32[elem][i];
 	}
 	return ret;
 }
@@ -336,117 +172,9 @@ constexpr Chirotope<R, N> Chirotope<R, N>::contraction_elem(int elem) const {
 // Here "idx >> 5" is just "idx / 32" and "idx & 31" is "idx % 32"
 
 template<int R, int N>
-constexpr bool Chirotope<R, N>::get_plus(int idx) const {
-    return plus[idx >> 5] & ((uint32_t)1 << (idx & 31));
-}
-
-template<int R, int N>
-constexpr bool Chirotope<R, N>::get_minus(int idx) const {
-    return minus[idx >> 5] & ((uint32_t)1 << (idx & 31));
-}
-
-template<int R, int N>
-constexpr bool Chirotope<R, N>::is_basis(int idx) const {
-    return get_plus(idx) || get_minus(idx);
-}
-
-template<int R, int N>
-constexpr char Chirotope<R, N>::get(int idx) const {
-    return evaluate(idx);
-}
-
-template<int R, int N>
-constexpr char Chirotope<R, N>::evaluate(int idx) const {
-    if (plus[idx >> 5] & ((uint32_t)1 << (idx & 31))) {
-        return '+';
-    } else if (minus[idx >> 5] & ((uint32_t)1 << (idx & 31))) {
-        return '-';
-    } else {
-        return '0';
-    }
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::set_plus(int idx, bool value) {
-    plus[idx >> 5] = plus[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(value) << (idx & 31);
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::set_minus(int idx, bool value) {
-    minus[idx >> 5] = minus[idx >> 5] & ~((uint32_t)1 << (idx & 31)) | uint32_t(value) << (idx & 31);
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::set(int i, int r, char c) {
-    switch (c)
-    {
-    case '+':
-        plus[i] |= (uint32_t)1 << r;
-        minus[i] &= ~((uint32_t)1 << r);
-        break;
-    case '-':
-        minus[i] |= (uint32_t)1 << r;
-        plus[i] &= ~((uint32_t)1 << r);
-        break;
-    case '0':
-        plus[i] &= ~((uint32_t)1 << r);
-        minus[i] &= ~((uint32_t)1 << r);
-        break;
-    default:
-        throw std::invalid_argument("Invalid character! "
-        "The only valid characters are '0', '-', and '+', but the inputted "
-        "character was '"+std::to_string(c)+"'.");
-        break;
-    }
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Chirotope<R, N>& Chirotope<R, N>::set(int idx, char c) {
-    set(idx >> 5, idx & 31, c);
-	return (*this);
-}
-
-template<int R, int N>
-constexpr Chirotope<R,N>& Chirotope<R, N>::read(const std::string& str) {
-    if (str.length() != NR_RTUPLES) throw std::invalid_argument("The input string is of incorrect length! "
-        "Input length: "+std::to_string(str.length())+", expected length: ("+std::to_string(N)+" "
-        "choose "+std::to_string(R)+") = "+std::to_string(NR_RTUPLES)+"."
-        " Input string: <"+str+">");
-    for (auto i = 0; i < NR_INT32 - 1; i++) {
-        for (auto c = 0; c < 32; c++) {
-            set(i, c, str[i * 32 + c]);
-        }
-    }
-    for (auto c = 0; c < NR_REMAINING_BITS; c++) {
-        set(NR_INT32 - 1, c, str[(NR_INT32 - 1) * 32 + c]);
-    }
-    return (*this);
-}
-
-template<int R, int N>
-constexpr bool Chirotope<R, N>::is_zero() const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (plus[i] != 0 || minus[i] != 0) return true;
-    }
-    return false;
-}
-
-template<int R, int N>
-constexpr int Chirotope<R, N>::countbases() const {
-    int count = 0;
-    for (auto i = 0; i < NR_INT32; i++) {
-        count += count_1bits(plus[i] | minus[i]);
-    }
-    return count;
-}
-
-template<int R, int N>
 constexpr bool Chirotope<R, N>::is_loop(int element) const {
-	for (auto i = 0; i < NR_INT32; i++) {
-		if ((plus[i] | minus[i]) & RTUPLES_LIST::contained_mask32[element][i])
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		if ((BASE::plus[i] | BASE::minus[i]) & RTUPLES_LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -454,25 +182,18 @@ constexpr bool Chirotope<R, N>::is_loop(int element) const {
 
 template<int R, int N>
 constexpr bool Chirotope<R, N>::is_coloop(int element) const {
-	for (auto i = 0; i < NR_INT32; i++) {
-		if ((plus[i] | minus[i]) & ~RTUPLES_LIST::contained_mask32[element][i])
+	for (auto i = 0; i < BASE::NR_INT32; i++) {
+		if ((BASE::plus[i] | BASE::minus[i]) & ~RTUPLES_LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
 }
 
 template<int R, int N>
-constexpr bool Chirotope<R, N>::weak_maps_to(const Chirotope& chi) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (~plus[i] & chi.plus[i] | ~minus[i] & chi.minus[i]) return false;
-    }
-    return true;
-}
-
-template<int R, int N>
 constexpr bool Chirotope<R, N>::weak_maps_to(const Matroid<R, N>& matroid) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (~(plus[i] | minus[i]) & matroid.char_vector[i]) return false;
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        if (~(BASE::plus[i] | BASE::minus[i]) & matroid.bits[i]) 
+			return false;
     }
     return true;
 }
@@ -480,8 +201,8 @@ constexpr bool Chirotope<R, N>::weak_maps_to(const Matroid<R, N>& matroid) const
 template<int R, int N>
 constexpr bool Chirotope<R, N>::OM_weak_maps_to(const Chirotope& chi) const {
     bool is_wm = true;
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (~plus[i] & chi.minus[i] | ~minus[i] & chi.plus[i]) {
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        if (~BASE::plus[i] & chi.minus[i] | ~BASE::minus[i] & chi.plus[i]) {
             is_wm = false;
             break;
         }
@@ -491,28 +212,10 @@ constexpr bool Chirotope<R, N>::OM_weak_maps_to(const Chirotope& chi) const {
 }
 
 template<int R, int N>
-constexpr bool Chirotope<R, N>::operator==(const Chirotope& chi) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (plus[i] != chi.plus[i] || minus[i] != chi.minus[i])
-            return false;
-    }
-    return true;
-}
-
-template<int R, int N>
-constexpr bool Chirotope<R, N>::operator!=(const Chirotope& chi) const {
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (plus[i] != chi.plus[i] || minus[i] != chi.minus[i])
-            return true;
-    }
-    return false;
-}
-
-template<int R, int N>
 constexpr bool Chirotope<R, N>::is_same_OM_as(const Chirotope& chi) const {
     bool is_same = true;
-    for (auto i = 0; i < NR_INT32; i++) {
-        if (plus[i] != chi.minus[i] || minus[i] != chi.plus[i]) {
+    for (auto i = 0; i < BASE::NR_INT32; i++) {
+        if (BASE::plus[i] != chi.minus[i] || BASE::minus[i] != chi.plus[i]) {
             is_same = false;
             break;
         }
@@ -523,48 +226,12 @@ constexpr bool Chirotope<R, N>::is_same_OM_as(const Chirotope& chi) const {
 
 template<int R, int N>
 std::ostream& operator<<(std::ostream& os, const Chirotope<R, N>& chi) {
-    for (auto i = 0; i < chi.NR_INT32 - 1; i++) {
-        for (auto c = 0; c < 32; c++) {
-            if (chi.plus[i] & ((uint32_t)1 << c))
-                os << '+';
-            else if (chi.minus[i] & ((uint32_t)1 << c))
-                os << '-';
-            else
-                os << '0';
-        }
-    }
-    for (auto c = 0; c < chi.NR_REMAINING_BITS; c++) {
-        if (chi.plus[chi.NR_INT32 - 1] & ((uint32_t)1 << c))
-            os << '+';
-        else if (chi.minus[chi.NR_INT32 - 1] & ((uint32_t)1 << c))
-            os << '-';
-        else
-            os << '0';
-    }
-    return os;
+    return os << static_cast<const Chirotope<R, N>::BASE&>(chi);
 }
 
 template<int R, int N>
 std::ofstream& operator<<(std::ofstream& of, const Chirotope<R, N>& chi) {
-    for (auto i = 0; i < chi.NR_INT32 - 1; i++) {
-        for (auto c = 0; c < 32; c++) {
-            if (chi.plus[i] & ((uint32_t)1 << c))
-                of << '+';
-            else if (chi.minus[i] & ((uint32_t)1 << c))
-                of << '-';
-            else
-                of << '0';
-        }
-    }
-    for (auto c = 0; c < chi.NR_REMAINING_BITS; c++) {
-        if (chi.plus[chi.NR_INT32 - 1] & ((uint32_t)1 << c))
-            of << '+';
-        else if (chi.minus[chi.NR_INT32 - 1] & ((uint32_t)1 << c))
-            of << '-';
-        else
-            of << '0';
-    }
-    return of;
+    return of << static_cast<const Chirotope<R, N>::BASE&>(chi);
 }
 
 template<int R, int N>
@@ -1252,16 +919,16 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 	char i,j,k,l,p,q;
 	long long int h;
 
-	for (k=0;k<NR_INT32;k++)
-		if (plus[k] & minus[k]) 		//if the same basis is both positive and negative
+	for (k=0;k<BASE::NR_INT32;k++)
+		if (BASE::plus[k] & BASE::minus[k]) 		//if the same basis is both positive and negative
 			return 0;
 	
 
-	for (k=0;k<NR_INT32;k++)
-		if (plus[k]!=0 || minus[k]!=0) 		//(B0)
+	for (k=0;k<BASE::NR_INT32;k++)
+		if (BASE::plus[k]!=0 || BASE::minus[k]!=0) 		//(B0)
 			break;
 
-	if (k==NR_INT32)
+	if (k==BASE::NR_INT32)
 		return 0; 						
 
 
@@ -1271,34 +938,34 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 	char sign,limit_i,limit_j;
 	int pi,pj,mi,mj;
 
-	for (k=0;k<NR_INT32;k++)
+	for (k=0;k<BASE::NR_INT32;k++)
 	{
-		if (k==NR_INT32)
+		if (k==BASE::NR_INT32)
 			limit_i=NR_RTUPLES &31;
 		else limit_i=32;
 		for (i=0;i<limit_i;i++)
 		{
 			
 			h=(uint32_t)1 <<i;
-			pi=plus[k] & h;	 		//pi!=0 iff \chi(bases[i])=1
-			mi = minus[k] & h;		 	//mi!=0 iff \chi(bases[i])=-1
+			pi=BASE::plus[k] & h;	 		//pi!=0 iff \chi(bases[i])=1
+			mi = BASE::minus[k] & h;		 	//mi!=0 iff \chi(bases[i])=-1
 			if ((pi == 0) && (mi == 0)) 	//\chi(bases[i])=0, we do not have to worry about this basis
 				continue;
 		
-			for (l=k;l<NR_INT32;l++)
+			for (l=k;l<BASE::NR_INT32;l++)
 			{
 				
 				if (l==k)
 					j=i+1;
 				else j=0;
-				if (l==NR_INT32-1)
+				if (l==BASE::NR_INT32-1)
 					limit_j=NR_RTUPLES&31;
 				else limit_j=32;
 				for (j;j<limit_j;j++)
 				{
 					h=(uint32_t)1<<j;
-					pj = plus[l] & h;
-					mj = minus[l] & h;
+					pj = BASE::plus[l] & h;
+					mj = BASE::minus[l] & h;
 					if (pj == 0 && mj == 0)
 						continue;
 			
