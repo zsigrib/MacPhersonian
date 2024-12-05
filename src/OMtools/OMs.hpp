@@ -56,16 +56,12 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     //   CONSTANTS
     // =============
 
-    // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
-    // subsets of `0..N-1`.
-    constexpr static const int NR_RTUPLES = binomial_coefficient(N, R);
-
     // Use `RTUPLES::LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES::LIST::array` 
     // evaluates at compile-time.
     using RTUPLES = Rtuples::RTUPLES<char, R, N, int>;
     // The base class of `Matroid<R,N>` is `bit_vector<binomial_coefficient(N, R)>`
-    using BASE = bit_vector<NR_RTUPLES>;
+    using BASE = bit_vector<RTUPLES::NR>;
 
     // ================
     //   CONSTRUCTORS
@@ -95,7 +91,7 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // the `bool` argument is `true`.
     constexpr Matroid& set_basis(int idx, bool value) 
     { BASE::set_bit(idx, value); return *this; }
-    // Given a string of `'0'` and `'1'` characters of length `NR_RTUPLES`,
+    // Given a string of `'0'` and `'1'` characters of length `RTUPLES::NR`,
     // sets this matroid to be the matroid prescribed by it: this matroid
     // will have the `R`-tuple stored in RTUPLES::LIST::array[i]` as a basis
     // if and only if the `i`th character of the given string is `'1'`.
@@ -148,10 +144,10 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // only if the `i`th `R`-tuple stored in `RTUPLES::LIST::array` is
     // a basis of this matroid.
     friend std::ofstream& operator<< <>(std::ofstream&, const Matroid&);
-    // After discarding all leading whitespace, read the next `NR_RTUPLES`
+    // After discarding all leading whitespace, read the next `RTUPLES::NR`
     // characters into the given matroid, as specified in `Matroid::read(...)`.
     friend std::istream& operator>> <>(std::istream&, Matroid&);
-    // After discarding all leading whitespace, read the next `NR_RTUPLES`
+    // After discarding all leading whitespace, read the next `RTUPLES::NR`
     // characters into the given matroid, as specified in `Matroid::read(...)`.
     friend std::ifstream& operator>> <>(std::ifstream&, Matroid&);
 };
@@ -181,16 +177,12 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     //   CONSTANTS
     // =============
 
-    // `(N choose R)=N!/(R!*(N-R)!)`, the number of distinct `R`-element 
-    // subsets of `0..N-1`.
-    static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
-
     // Use `RTUPLES::LIST::array[i][k]` to access the `k`th element of 
     // the `i`th `R`-element subset of `0..N-1`. `RTUPLES::LIST::array` 
     // evaluates at compile-time.
     using RTUPLES = Rtuples::RTUPLES<char, R, N, int>;
     // The base class of `Chirotope<R,N>` is `sign_vector<binomial_coefficient(N, R)>`
-    using BASE = sign_vector<NR_RTUPLES>;
+    using BASE = sign_vector<RTUPLES::NR>;
 
     // ================
     //   CONSTRUCTORS
@@ -317,7 +309,7 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     constexpr Chirotope& set(int i, int r, char c)
     { BASE::set_sign(i, r, c); return *this; }
     // Given a string of `'+'`, `'-'`, and `'0'` characters of length
-    // `NR_RTUPLES`, sets this chirotope to have the values prescribed
+    // `RTUPLES::NR`, sets this chirotope to have the values prescribed
     // by it: the chirotope will evaluate to the value specified by the
     // `i`th character of the string at the `R`-tuple stored in
     // `RTUPLES::LIST::array[i]`.
@@ -389,10 +381,10 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // the chirotope evaluated on the `i`th `R`-tuple stored in
     // `RTUPLES::LIST::array`.
     friend std::ofstream& operator<< <>(std::ofstream&, const Chirotope&);
-    // After discarding all leading whitespace, read the next `NR_RTUPLES`
+    // After discarding all leading whitespace, read the next `RTUPLES::NR`
     // characters into the given chirotope, as specified in `Chirotope::read(...)`.
     friend std::istream& operator>> <>(std::istream&, Chirotope&);
-    // After discarding all leading whitespace, read the next `NR_RTUPLES`
+    // After discarding all leading whitespace, read the next `RTUPLES::NR`
     // characters into the given chirotope, as specified in `Chirotope::read(...)`.
     friend std::ifstream& operator>> <>(std::ifstream&, Chirotope&);
 };

@@ -877,7 +877,7 @@ constexpr int index_of_Rtuple(const std::array<char, R>& a) {
 	
 	int l,u,m,i;						//code that works for every parameter, slow...
 	l=0;
-	u=Chirotope<R, N>::NR_RTUPLES-1;
+	u=Chirotope<R, N>::RTUPLES::NR-1;
 	m=(l+u)>>1;
 	const auto& bases = NchooseK<int, N, R>::array;
 
@@ -904,7 +904,7 @@ constexpr int index_of_Rtuple(const std::array<char, R>& a) {
 		while (l>=0 && a[i]==bases[l][i])
 			l--;
 		l++;
-		while (u< Chirotope<R, N>::NR_RTUPLES && a[i]==bases[u][i])
+		while (u< Chirotope<R, N>::RTUPLES::NR && a[i]==bases[u][i])
 			u++;
 		u--;
 		if (l==u)
@@ -941,7 +941,7 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 	for (k=0;k<BASE::NR_INT32;k++)
 	{
 		if (k==BASE::NR_INT32)
-			limit_i=NR_RTUPLES &31;
+			limit_i=RTUPLES::NR &31;
 		else limit_i=32;
 		for (i=0;i<limit_i;i++)
 		{
@@ -959,7 +959,7 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 					j=i+1;
 				else j=0;
 				if (l==BASE::NR_INT32-1)
-					limit_j=NR_RTUPLES&31;
+					limit_j=RTUPLES::NR&31;
 				else limit_j=32;
 				for (j;j<limit_j;j++)
 				{

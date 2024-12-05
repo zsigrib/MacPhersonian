@@ -1097,6 +1097,7 @@ struct RTUPLES {
 	// data to help query them.
 	using LIST=NchooseK<LabelType,N,R,IndexType>;
 
+	// Number of `R`-element subsets of `0..N-1`.
 	static constexpr int NR = LIST::NR_RTUPLES;
 
 	// Wrapper for `Rtuples::index_of_ordered`.
