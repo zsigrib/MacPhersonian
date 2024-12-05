@@ -25,7 +25,7 @@ constexpr int count_1bits(uint32_t n)
 template<int R, int N>
 constexpr bool Matroid<R, N>::is_loop(int element) const {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		if (BASE::bits[i] & RTUPLES_LIST::contained_mask32[element][i])
+		if (BASE::bits[i] & RTUPLES::LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -34,7 +34,7 @@ constexpr bool Matroid<R, N>::is_loop(int element) const {
 template<int R, int N>
 constexpr bool Matroid<R, N>::is_coloop(int element) const {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		if (BASE::bits[i] & ~RTUPLES_LIST::contained_mask32[element][i])
+		if (BASE::bits[i] & ~RTUPLES::LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -103,8 +103,8 @@ constexpr Chirotope<R, N>& Chirotope<R, N>::restrict_to_matroid
 template<int R, int N>
 constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elem(int elem) {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		BASE::plus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
-		BASE::minus[i] &= ~RTUPLES_LIST::contained_mask32[elem][i];
+		BASE::plus[i] &= ~RTUPLES::LIST::contained_mask32[elem][i];
+		BASE::minus[i] &= ~RTUPLES::LIST::contained_mask32[elem][i];
 	}
 	return (*this);
 }
@@ -113,8 +113,8 @@ template<int R, int N>
 constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elem(int elem) const {
 	Chirotope<R, N> ret;
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		ret.plus[i] = BASE::plus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
-		ret.minus[i] = BASE::minus[i] & ~RTUPLES_LIST::contained_mask32[elem][i];
+		ret.plus[i] = BASE::plus[i] & ~RTUPLES::LIST::contained_mask32[elem][i];
+		ret.minus[i] = BASE::minus[i] & ~RTUPLES::LIST::contained_mask32[elem][i];
 	}
 	return ret;
 }
@@ -126,7 +126,7 @@ constexpr Chirotope<R, N>& Chirotope<R, N>::delete_elems(const VectorT& elems) {
 		uint32_t mask = 0;
 		for (auto elem: elems) {
 			static_assert(std::is_integral_v<decltype(elem)>);
-			mask |= RTUPLES_LIST::contained_mask32[elem][i];
+			mask |= RTUPLES::LIST::contained_mask32[elem][i];
 		}
 		BASE::plus[i] &= ~mask;
 		BASE::minus[i] &= ~mask;
@@ -142,7 +142,7 @@ constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elems(const VectorT& elems) 
 		uint32_t mask = 0;
 		for (auto elem: elems) {
 			static_assert(std::is_integral_v<decltype(elem)>);
-			mask |= RTUPLES_LIST::contained_mask32[elem][i];
+			mask |= RTUPLES::LIST::contained_mask32[elem][i];
 		}
 		ret.plus[i] = BASE::plus[i] & ~mask;
 		ret.minus[i] = BASE::minus[i] & ~mask;
@@ -153,8 +153,8 @@ constexpr Chirotope<R, N> Chirotope<R, N>::deletion_elems(const VectorT& elems) 
 template<int R, int N>
 constexpr Chirotope<R,N>& Chirotope<R, N>::contract_elem(int elem) {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		BASE::plus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
-		BASE::minus[i] &= RTUPLES_LIST::contained_mask32[elem][i];
+		BASE::plus[i] &= RTUPLES::LIST::contained_mask32[elem][i];
+		BASE::minus[i] &= RTUPLES::LIST::contained_mask32[elem][i];
 	}
 	return (*this);
 }
@@ -163,8 +163,8 @@ template<int R, int N>
 constexpr Chirotope<R, N> Chirotope<R, N>::contraction_elem(int elem) const {
 	Chirotope<R, N> ret;
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		ret.plus[i] = BASE::plus[i] & RTUPLES_LIST::contained_mask32[elem][i];
-		ret.minus[i] = BASE::minus[i] & RTUPLES_LIST::contained_mask32[elem][i];
+		ret.plus[i] = BASE::plus[i] & RTUPLES::LIST::contained_mask32[elem][i];
+		ret.minus[i] = BASE::minus[i] & RTUPLES::LIST::contained_mask32[elem][i];
 	}
 	return ret;
 }
@@ -174,7 +174,7 @@ constexpr Chirotope<R, N> Chirotope<R, N>::contraction_elem(int elem) const {
 template<int R, int N>
 constexpr bool Chirotope<R, N>::is_loop(int element) const {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		if ((BASE::plus[i] | BASE::minus[i]) & RTUPLES_LIST::contained_mask32[element][i])
+		if ((BASE::plus[i] | BASE::minus[i]) & RTUPLES::LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -183,7 +183,7 @@ constexpr bool Chirotope<R, N>::is_loop(int element) const {
 template<int R, int N>
 constexpr bool Chirotope<R, N>::is_coloop(int element) const {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
-		if ((BASE::plus[i] | BASE::minus[i]) & ~RTUPLES_LIST::contained_mask32[element][i])
+		if ((BASE::plus[i] | BASE::minus[i]) & ~RTUPLES::LIST::contained_mask32[element][i])
 			return false;
 	}
 	return true;
@@ -978,11 +978,11 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 					{
 						for (q=0;q<R;q++)
 						{
-							x[q]=RTUPLES_LIST::array[i+(k<<5)][q];
-							y[q]=RTUPLES_LIST::array[j+(l<<5)][q];
+							x[q]=RTUPLES::LIST::array[i+(k<<5)][q];
+							y[q]=RTUPLES::LIST::array[j+(l<<5)][q];
 						}	
-						x[0]=RTUPLES_LIST::array[i+(k<<5)][p];
-						x[p]=RTUPLES_LIST::array[i+(k<<5)][0];
+						x[0]=RTUPLES::LIST::array[i+(k<<5)][p];
+						x[p]=RTUPLES::LIST::array[i+(k<<5)][0];
 						
 						if (p==1)
 							sign=-sign;
@@ -1031,15 +1031,16 @@ constexpr bool Chirotope<R, N>::b2prime(char sign, const std::array<char,R>& X, 
 		y[j]=X[0];
 
 		
-		s1=sort_array<R, N>(x);		 		 //checks \chi(y1,x2,x3)*\chi(x1,y2,y3)
-		s2=sort_array<R, N>(y);
-
-		
+		//checks \chi(y1,x2,x3)*\chi(x1,y2,y3)
+		auto s1_and_idx1 = RTUPLES::sign_and_index_of_unordered(x);
+		auto s2_and_idx2 = RTUPLES::sign_and_index_of_unordered(y);
+		s1 = s1_and_idx1.first;
+		s2 = s2_and_idx2.first;
 
 		if (s1!=0 && s2!=0)			//s1==0 means that two of y1,x2,x3 are the same, its chirotope value is 0 and we want \chi(y1,x2,x3)*\chi(x1,y2,y3)<0
 		{
 			
-			if (axB2(sign,s1,s2,index_of_Rtuple<R, N>(x),index_of_Rtuple<R, N>(y)))
+			if (axB2(sign,s1,s2,s1_and_idx1.second,s2_and_idx2.second))
 			{
 				return true;
 			}

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <array>
 #include <format>
@@ -8,7 +9,7 @@
 
 
 #define R0 3
-#define N0 9
+#define N0 7
 
 
 enum verboseness {silent, result, info, checkpoints};
@@ -174,7 +175,7 @@ for (auto p: input) {
         " is_chirotope() evaluates to false: \n" << p.second << "\n";
         for (int r = 0; r < R0; r++) {
             for (int i = 0; i < binomial_coefficient(N0, R0); i++) {
-                std::cout << Chirotope<R0,N0>::RTUPLES_LIST::array[i][r];
+                std::cout << Chirotope<R0,N0>::RTUPLES::LIST::array[i][r];
             }
             std::cout << "\n";
         }
@@ -241,7 +242,7 @@ for (auto i = 0; i < TESTS; i++) {
         " is_chirotope() != is_in_database: \n" << c << "\n";
         for (int r = 0; r < R0; r++) {
             for (int i = 0; i < binomial_coefficient(N0, R0); i++) {
-                std::cout << Chirotope<R0,N0>::RTUPLES_LIST::array[i][r];
+                std::cout << Chirotope<R0,N0>::RTUPLES::LIST::array[i][r];
             }
             std::cout << "\n";
         }

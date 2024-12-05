@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstdint>
 #include "mymath.hpp"
+#include "NchooseK.hpp"
 #include "signvectors.hpp"
 
 // =======
@@ -22,7 +23,7 @@ template<int R, int N>
 constexpr int sort_array(std::array<char, R>&);
 
 // Returns the index of the given `R`-tuple inside
-// `Chirotope<R, N>::RTUPLES_LIST::array`.
+// `Chirotope<R, N>::RTUPLES::LIST::array`.
 //
 // TODO: move into `NchooseK`
 template<int R, int N>
@@ -59,10 +60,10 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // subsets of `0..N-1`.
     constexpr static const int NR_RTUPLES = binomial_coefficient(N, R);
 
-    // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
-    // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
+    // Use `RTUPLES::LIST::array[i][k]` to access the `k`th element of 
+    // the `i`th `R`-element subset of `0..N-1`. `RTUPLES::LIST::array` 
     // evaluates at compile-time.
-    using RTUPLES_LIST = NchooseK<int, N, R>;
+    using RTUPLES = Rtuples::RTUPLES<char, R, N, int>;
     // The base class of `Matroid<R,N>` is `bit_vector<binomial_coefficient(N, R)>`
     using BASE = bit_vector<NR_RTUPLES>;
 
@@ -86,17 +87,17 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // ===============================
     
     // Returns whether the `R`-tuple stored at the given index within 
-    // `RTUPLES_LIST::array` is a basis of this matroid.
+    // `RTUPLES::LIST::array` is a basis of this matroid.
     constexpr bool is_basis(int idx) const 
     { return BASE::get_bit(idx); }
     // Change the matroid such that the `R`-tuple stored at the given
-    // index withing `RTUPLES_LIST::array` is a basis if and only if
+    // index withing `RTUPLES::LIST::array` is a basis if and only if
     // the `bool` argument is `true`.
     constexpr Matroid& set_basis(int idx, bool value) 
     { BASE::set_bit(idx, value); return *this; }
     // Given a string of `'0'` and `'1'` characters of length `NR_RTUPLES`,
     // sets this matroid to be the matroid prescribed by it: this matroid
-    // will have the `R`-tuple stored in RTUPLES_LIST::array[i]` as a basis
+    // will have the `R`-tuple stored in RTUPLES::LIST::array[i]` as a basis
     // if and only if the `i`th character of the given string is `'1'`.
     constexpr Matroid& read(const std::string& from) 
     { BASE::read(from); return *this; }
@@ -139,12 +140,12 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
 
     // Writes the matroid to the given output stream as a sequence of
     // `'0'` and `'1'` characters: the `i`th character is `'1'` if and
-    // only if the `i`th `R`-tuple stored in `RTUPLES_LIST::array` is
+    // only if the `i`th `R`-tuple stored in `RTUPLES::LIST::array` is
     // a basis of this matroid.
     friend std::ostream& operator<< <>(std::ostream&, const Matroid&);
     // Writes the matroid to the given output stream as a sequence of
     // `'0'` and `'1'` characters: the `i`th character is `'1'` if and
-    // only if the `i`th `R`-tuple stored in `RTUPLES_LIST::array` is
+    // only if the `i`th `R`-tuple stored in `RTUPLES::LIST::array` is
     // a basis of this matroid.
     friend std::ofstream& operator<< <>(std::ofstream&, const Matroid&);
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
@@ -184,10 +185,10 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // subsets of `0..N-1`.
     static constexpr int NR_RTUPLES = binomial_coefficient(N, R);
 
-    // Use `RTUPLES_LIST::array[i][k]` to access the `k`th element of 
-    // the `i`th `R`-element subset of `0..N-1`. `RTUPLES_LIST::array` 
+    // Use `RTUPLES::LIST::array[i][k]` to access the `k`th element of 
+    // the `i`th `R`-element subset of `0..N-1`. `RTUPLES::LIST::array` 
     // evaluates at compile-time.
-    using RTUPLES_LIST = NchooseK<int, N, R>;
+    using RTUPLES = Rtuples::RTUPLES<char, R, N, int>;
     // The base class of `Chirotope<R,N>` is `sign_vector<binomial_coefficient(N, R)>`
     using BASE = sign_vector<NR_RTUPLES>;
 
@@ -280,18 +281,18 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // ===============================
 
     // Returns whether the chirotope evaluates to `+` on the `R`-tuple
-    // stored at the given index within `RTUPLES_LIST::array`.
+    // stored at the given index within `RTUPLES::LIST::array`.
     constexpr bool get_plus(int idx) const 
     { return BASE::plus.get_bit(idx); }
     // Returns whether the chirotope evaluates to `-` on the `R`-tuple
-    // stored at the given index within `RTUPLES_LIST::array`.
+    // stored at the given index within `RTUPLES::LIST::array`.
     constexpr bool get_minus(int idx) const
     { return BASE::minus.get_bit(idx); }
     // Returns whether the chirotope is non-zero on the `R`-tuple
-    // stored at the given index within `RTUPLES_LIST::array`.
+    // stored at the given index within `RTUPLES::LIST::array`.
     constexpr bool is_basis(int idx) const
     { return BASE::is_nonzero(idx); }
-    // Evaluates the chirotope on the `R`-tuple in `RTUPLES_LIST::array`
+    // Evaluates the chirotope on the `R`-tuple in `RTUPLES::LIST::array`
     // at the given index. Possible return values are `'0'`, `'+'`, and
     // `'-'`. Identival to `get(int)`.
     constexpr char evaluate(int idx) const
@@ -305,7 +306,7 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     constexpr Chirotope& set_minus(int idx, bool value)
     { BASE::minus.set_bit(idx, value); return *this; }
     // Makes the chirotope evaluate for the `R`-tuple in 
-    // `RTUPLES_LIST::array` at the given index to `0`, `+`, or `-`,
+    // `RTUPLES::LIST::array` at the given index to `0`, `+`, or `-`,
     // if the given `char` is `'0'`, `'+'`, or `'-'` respectively.
     constexpr Chirotope& set(int idx, char c)
     { BASE::set_sign(idx, c); return *this;}
@@ -319,7 +320,7 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // `NR_RTUPLES`, sets this chirotope to have the values prescribed
     // by it: the chirotope will evaluate to the value specified by the
     // `i`th character of the string at the `R`-tuple stored in
-    // `RTUPLES_LIST::array[i]`.
+    // `RTUPLES::LIST::array[i]`.
     constexpr Chirotope& read(const std::string& from)
     { BASE::read(from); return *this; }
     
@@ -381,12 +382,12 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // Writes the chirotope to the given output stream as a sequence of
     // `'0'`, `'+'`, and `'-'` characters: the `i`th character is just
     // the chirotope evaluated on the `i`th `R`-tuple stored in
-    // `RTUPLES_LIST::array`.
+    // `RTUPLES::LIST::array`.
     friend std::ostream& operator<< <>(std::ostream&, const Chirotope&);
     // Writes the chirotope to the given file stream as a sequence of
     // `'0'`, `'+'`, and `'-'` characters: the `i`th character is just
     // the chirotope evaluated on the `i`th `R`-tuple stored in
-    // `RTUPLES_LIST::array`.
+    // `RTUPLES::LIST::array`.
     friend std::ofstream& operator<< <>(std::ofstream&, const Chirotope&);
     // After discarding all leading whitespace, read the next `NR_RTUPLES`
     // characters into the given chirotope, as specified in `Chirotope::read(...)`.
