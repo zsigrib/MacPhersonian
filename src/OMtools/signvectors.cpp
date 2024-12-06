@@ -8,6 +8,13 @@
 // ==============
 
 template<int L>
+constexpr bit_vector<L>::bit_vector(const std::array<uint32_t,NR_INT32>& from): bits {} {
+    for (auto i = 0; i < NR_INT32; ++i) {
+        bits[i] = from[i];
+    }
+}
+
+template<int L>
 constexpr bit_vector<L>::bit_vector(const std::string& from): bits {} {
     read(from);
 }

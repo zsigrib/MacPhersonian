@@ -52,6 +52,8 @@ struct bit_vector {
 
     // Creates a bitvector that only contains 0s.
     constexpr bit_vector(): bits{} {}
+    // Create a bitvector by copying the contents of an array.
+    constexpr bit_vector(const std::array<uint32_t,NR_INT32>& from);
     // Reads in a string of length `L` which only contains the
     // characters `'0'` and `'1'`, and constructs a bitvector
     // corresponding to it: the `idx`th bit of the bitvector will

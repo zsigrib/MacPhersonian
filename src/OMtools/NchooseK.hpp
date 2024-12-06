@@ -78,13 +78,13 @@ struct NchooseK {
         return m;
     }()};
     // If one writes the elements of `0..N-1` not present in the `i`th
-    // `k`-tuple right after this `k`-tuple in increasing order, is the 
+    // `k`-tuple right before this `k`-tuple (in increasing order), is the 
     // sign of the resulting permutation of `0..N-1` equal to `-`?
     // This is answered by `is_dual_inverted[i]`.
     constexpr static const auto is_dual_inverted{[]() constexpr{
         std::array<bool, NR_RTUPLES> di{};
         for (IndexType i = 0; i < NR_RTUPLES; i++) {
-            IndexType sum = (k * (k-1)) / 2 + 1; // The +1 here just negates the end result.
+            IndexType sum = (k * (2*N-k-1)) / 2; // binomial_coefficient(k,2)+k*(N-k)
             for (LabelType t = 0; t < k; t++) {
                 sum += (array[i][t]) % 2;
             }
@@ -108,6 +108,18 @@ struct NchooseK {
         }
         return di;
     }()};
+
+	constexpr static const auto char_vector_of_Rtuple{[]() constexpr {
+		constexpr auto N_NR_INT32 = division_rounded_up<LabelType>(N, 32);
+		std::array<std::array<uint32_t, N_NR_INT32>, NR_RTUPLES> cv{};
+		for (IndexType idx = 0; idx < NR_RTUPLES; ++idx) {
+			for (LabelType t = 0; t < k; ++t) {
+				LabelType entry = array[idx][t];
+				cv[idx][entry >> 5] |= (uint32_t)1 << (entry & 31);
+			}
+		}
+		return cv;
+	}()};
 };
 
 // ================

@@ -215,6 +215,7 @@ public Operation<
     Op12 op12;
     Op01 op01;
 
+    constexpr FormalProductOfOperations(): op12{}, op01{} {}
     constexpr FormalProductOfOperations(
         const Op12& o12, const Op01& o01
     ): op12(o12), op01(o01) {}
