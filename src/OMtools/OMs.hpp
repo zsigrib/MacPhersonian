@@ -224,49 +224,6 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // Return the underlying matroid of this chirotope, i.e. the set of
     // bases of this chirotope.
     constexpr Matroid<R, N> underlying_matroid() const;
-    
-    // TODO: the below operations should be replaced by sign-vector
-    // operations.
-    
-    // Return a copy of this chirotope which is set to `0` on all non-bases 
-    // of the given matroid. Note that the resulting object might not satisfy 
-    // the chirotope axioms.
-    //
-    // See also `restrict_to_matroid(...)` for an in-place version of this 
-    // operation.
-    constexpr Chirotope restriction_to_matroid(const Matroid<R, N>&) const;
-    // Set this chirotope to `0` on all non-bases of the given matroid.
-    // Note that the new state of this object might not satisfy the 
-    // chirotope axioms.
-    //
-    // See also `restriction_to_matroid(...)` for a non-mutating version 
-    // of this operation. 
-    constexpr Chirotope& restrict_to_matroid(const Matroid<R, N>&);
-    // Delete the element specified by the input from this chirotope.
-    // This is an in-place operation: the deleted element is turned into
-    // a loop.
-    constexpr Chirotope& delete_elem(int);
-    // Construct a new chirotope equal to the deletion of the element
-    // specified by the input from this chirotope. The deleted element
-    // is turned into a loop.
-    constexpr Chirotope deletion_elem(int) const;
-    // Given a range-based-for-loop-iterable of integral types, delete all 
-    // elements specified by it form this chirotope. This is an in-place 
-    // operation: the deleted elements are turned into loops.
-    template<typename VectorT>
-    constexpr Chirotope& delete_elems(const VectorT&);
-    // Given a range-based-for-loop-iterable of integral types, delete all 
-    // elements specified by it form this chirotope and return the result
-    // as a new chirotope. The deleted elements are turned into loops.
-    template<typename VectorT>
-    constexpr Chirotope deletion_elems(const VectorT&) const;
-    // Given an integral input, change this chirotope by contracting the
-    // element specified by it. The contracted element is turned into a coloop.
-    constexpr Chirotope& contract_elem(int);
-    // Given an integral input, construct the contraction of this chirotope 
-    // with respect to the element specified by it. The contracted element is
-    // turned into a coloop.
-    constexpr Chirotope contraction_elem(int) const;
 
     // ===============================
     //   WRAPPED ACCESS TO VARIABLES

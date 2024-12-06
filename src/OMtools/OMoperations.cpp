@@ -328,7 +328,6 @@ contract_labels(const Iterable& labels) {
 
 template<int R, int N>
 constexpr std::vector<sign_vector<N>> cocircuits(const Chirotope<R, N>& chi) {
-    using RTUPLES = Chirotope<R, N>::RTUPLES; // R-tuples
     using R1TUPLES = Rtuples::RTUPLES<char,R-1,N,int>; // (R-1)-tuples
     constexpr auto N_NR_INT32 = division_rounded_up(N, 32);
     std::vector<sign_vector<N>> cocircuits_so_far{};

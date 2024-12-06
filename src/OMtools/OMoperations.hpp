@@ -405,6 +405,20 @@ constexpr auto cocircuit_extractors_from_chirotope{[]() constexpr {
 template<int R, int N>
 constexpr std::vector<sign_vector<N>> cocircuits(const Chirotope<R, N>&);
 
+// =============
+// MISCELLANEOUS
+// =============
+
+// Constructs a chirotope-operator, which sets a chirotope 
+// to `0` on all `R`-tuples whose corresponding entry in
+// the given  bitvector of length `binomial_coefficient(N,R)`
+// is 0.
+template<int R, int N>
+constexpr svo::Multiply_P0<Chirotope<R, N>> 
+restrict_to_bases(const bit_vector<Chirotope<R, N>::RTUPLES::NR>& bases){
+    return {bases};
+} 
+
 }
 
 #include "OMoperations.cpp"
