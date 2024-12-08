@@ -112,6 +112,19 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this matroid.
     constexpr bool is_coloop(int) const;
+    // Decides whether a subset of elements is independent. The empty
+    // set is considered independent.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s.
+    template<typename Iterable>
+    constexpr bool is_independent(const Iterable&);
+    // Compute the rank of a subset of elements.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s.
+    template<typename Iterable>
+    constexpr int rank(const Iterable&);
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
@@ -288,6 +301,18 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this chirotope.
     constexpr bool is_coloop(int) const;
+    // Decides whether a subset of elements is independent.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s.
+    template<typename Iterable>
+    constexpr bool is_independent(const Iterable&);
+    // Compute the rank of a subset of elements.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s.
+    template<typename Iterable>
+    constexpr int rank(const Iterable&);
     // Returns whether this chirotope weak maps to the other chirotope.
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given

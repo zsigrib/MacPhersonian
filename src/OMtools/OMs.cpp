@@ -41,6 +41,51 @@ constexpr bool Matroid<R, N>::is_coloop(int element) const {
 }
 
 template<int R, int N>
+template<typename Iterable>
+constexpr bool Matroid<R, N>::is_independent(const Iterable& elements) {
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		uint32_t bases_with_all_elements = BASE::bits[i];
+		for (char element: elements) {
+			bases_with_all_elements &= RTUPLES::LIST::contained_mask32[element][i];
+		}
+		if (bases_with_all_elements) {
+			return true;
+		}
+	}
+	return false;
+}
+
+template<int R, int N>
+template<typename Iterable>
+constexpr int Matroid<R, N>::rank(const Iterable& elements) {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::bits[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			rank += 1;
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return rank;
+}
+
+template<int R, int N>
 std::ostream& operator<<(std::ostream& os, const Matroid<R, N>& matroid) {
     return os << static_cast<const Matroid<R, N>::BASE&>(matroid);
 }
@@ -97,6 +142,51 @@ constexpr bool Chirotope<R, N>::is_coloop(int element) const {
 			return false;
 	}
 	return true;
+}
+
+template<int R, int N>
+template<typename Iterable>
+constexpr bool Chirotope<R, N>::is_independent(const Iterable& elements) {
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		uint32_t bases_with_all_elements = BASE::plus[i] | BASE::minus[i];
+		for (char element: elements) {
+			bases_with_all_elements &= RTUPLES::LIST::contained_mask32[element][i];
+		}
+		if (bases_with_all_elements) {
+			return true;
+		}
+	}
+	return false;
+}
+
+template<int R, int N>
+template<typename Iterable>
+constexpr int Chirotope<R, N>::rank(const Iterable& elements) {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::plus[i] | BASE::minus[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			rank += 1;
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return rank;
 }
 
 template<int R, int N>
