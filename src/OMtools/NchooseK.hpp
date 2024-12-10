@@ -3,6 +3,80 @@
 #include <utility>
 #include "mymath.hpp"
 
+namespace Rtuples {
+
+// Iterates over the `R`-element subsets of `0..N-1`
+// (also called `R`-tuples), and returns them as sorted
+// arrays.
+//
+// The type `LabelType` should be able to store non-negative
+// integers up to `N`.
+template<typename LabelType, LabelType R>
+struct iterator {
+	// The current `R`-tuple that the iterator is pointing to.
+	std::array<LabelType, R> current;
+	// The number of labels, i.e. an `R`-tuple can contain elements
+	// in `0..N-1`.
+	const LabelType N;
+	// Construct an iterator, pointing to the first `R`-tuple
+	// `(0,1,2,...,R-1)`, inside the set of `R`-tuples in `0..n-1`.
+	constexpr iterator(LabelType n): N(n) {
+		for (LabelType i = 0; i < R; ++i) {
+			current[i] = i;
+		}
+	}
+	// Construct an iterator, pointing to an invalid `R`-tuple,
+	// consisting solely of `n`s.
+	constexpr iterator(LabelType n, int): N(n) {
+		current[0] = N;
+	}
+	// Construct an iterator, pointing to the specified `R`-tuple.
+	constexpr iterator(LabelType n, const std::array<LabelType, R>& target): N(n) {
+		current = target;
+	}
+	// Construct an iterator, pointing to the first `R`-tuple
+	// `(0,1,2,...,R-1)`, inside the set of `R`-tuples in `0..n-1`.
+	constexpr iterator begin() const {
+		return *this;
+	}
+	// Construct an iterator, pointing to an invalid `R`-tuple, which
+	// signifies the end of the iteration.
+	constexpr iterator end() const {
+		return iterator(N,0);
+	}
+	// Return the `R`-tuple this iterator is currently pointing to.
+	constexpr std::array<LabelType,R> operator*() const {
+		return current;
+	}
+	constexpr iterator& operator++() {
+		LabelType r = R - 1;
+		while(r > 0 && current[r] >= N-R+r)
+			r--;
+		if (r == 0 && current[0] >= N-R) {
+			current[0] = N;
+			return *this;
+		}
+		LabelType current_r = current[r];
+		for (LabelType i = r; i < R; i++)
+			current[i] = current_r + (i - r) + 1;
+		return *this;
+	}
+	constexpr bool operator==(const iterator& other) {
+		return (N == other.N) && (
+			(current[0] == N && other.current[0] == N) || 
+			(current == other.current)
+		);
+	}
+	constexpr bool operator!=(const iterator& other) {
+		return (N != other.N) || (
+			(current[0] != N || other.current[0] != N) && 
+			(current != other.current)
+		);
+	}
+};
+
+}
+
 // NchooseK<N,k>::array lists all k-element subsets of {0..N-1}.
 // Auxulary constants are provided to make querying this list a
 // smoother experience. All constants are computed compile-time.
@@ -27,24 +101,12 @@ struct NchooseK {
     // subset of `0..N-1`. This is computed at compile time.
     constexpr static const auto array{[]() constexpr{
         std::array<std::array<LabelType, k>, NR_RTUPLES> a{}; 
-        for (LabelType i = 0; i < k; i++) {
-            a[0][i] = i;
-        }
-        LabelType r = k - 1;
-        LabelType s = 1;
-        while(true) {
-            r = k - 1;
-            while(r > 0 && a[s - 1][r] >= N-k+r)
-                r--;
-            if (r == 0 && a[s - 1][0] >= N-k)
-                break;
-            for (LabelType i = 0; i < r; i++)
-                a[s][i] = a[s-1][i];
-            for (LabelType i = r; i < k; i++)
-                a[s][i] = a[s-1][r] + (i - r) + 1;
-            s++;
-        }
-        return a;
+        IndexType idx = 0;
+		for (auto Rtuple: Rtuples::iterator<LabelType,k>(N)) {
+			a[idx] = Rtuple;
+			++idx;
+		}
+		return a;
     }()};
     // `contained[e][i]` is true if and only if the `i`th `k`-element
     // subset of `0..N-1` contains the element `e`.
