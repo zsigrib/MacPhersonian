@@ -11,9 +11,9 @@ namespace programs {
 // of all oriented matroids is available.
 template<int R, int N>
 int test_lower_cone_generation(const Chirotope<R, N>& top) {
-    auto LC_generated = generate_lower_cone(top);
+    auto LC_generated = research::generate_lower_cone(top);
     std::cout << "\n===============\n\n";
-    auto LC_filtered = filter_lower_cone(top);
+    auto LC_filtered = research::filter_lower_cone(top);
     std::cout << "Comparing results...\n";
     for (auto b = 0; b < binomial_coefficient(N, R); b++) {
         if (LC_generated[b].size() != LC_filtered[b].size()) {

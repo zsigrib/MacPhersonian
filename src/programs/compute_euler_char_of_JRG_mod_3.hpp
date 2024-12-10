@@ -11,7 +11,8 @@ namespace programs {
 // modulo 3. For this, a database of all oriented
 // matroids in `MacP(3,9)` is used which contains
 // precisely those which are fixed under an action of
-// `Z_3`.
+// `Z_3`. The total face vector of the complex of such
+// oriented matroids is also computed.
 int compute_euler_char_of_JRG_mod_3()
 {
 constexpr int R0 = 3;
