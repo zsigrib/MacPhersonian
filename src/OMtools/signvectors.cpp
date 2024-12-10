@@ -157,7 +157,7 @@ constexpr int bit_vector<L>::count_ones() const {
 }
 
 template<int L>
-std::vector<int> bit_vector<L>::indices_with_ones() const {
+std::vector<int> bit_vector<L>::indices_of_ones() const {
     std::vector<int> indices{};
     for (auto i = 0; i < NR_INT32; ++i) {
         uint32_t shifted_bitsi = bits[i];
@@ -168,6 +168,31 @@ std::vector<int> bit_vector<L>::indices_with_ones() const {
             ++running_index;
             shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
         }
+    }
+    return indices;
+}
+
+template<int L>
+std::vector<int> bit_vector<L>::indices_of_zeros() const {
+    std::vector<int> indices{};
+    for (auto i = 0; i < NR_INT32 - 1; ++i) {
+        uint32_t shifted_bitsi = ~bits[i];
+        int running_index = 32 * i;
+        while (shifted_bitsi) {
+            running_index += std::countr_zero(shifted_bitsi);
+            indices.push_back(running_index);
+            ++running_index;
+            shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
+        }
+    }
+    uint32_t shifted_bitsi = ~bits[NR_INT32 - 1]
+        & (((uint32_t)1 << NR_REMAINING_BITS) - 1);
+    int running_index = 32 * (NR_INT32 - 1);
+    while (shifted_bitsi) {
+        running_index += std::countr_zero(shifted_bitsi);
+        indices.push_back(running_index);
+        ++running_index;
+        shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
     }
     return indices;
 }
@@ -403,6 +428,57 @@ constexpr bool sign_vector<L>::is_zero() const {
 template<int L>
 constexpr int sign_vector<L>::count_nonzero() const {
     return plus.count_ones() + minus.count_ones();
+}
+
+template<int L>
+std::vector<int> sign_vector<L>::indices_of_zeros() const {
+    std::vector<int> indices{};
+    for (auto i = 0; i < NR_INT32 - 1; ++i) {
+        uint32_t shifted_bitsi = ~(plus[i] | minus[i]);
+        int running_index = 32 * i;
+        while (shifted_bitsi) {
+            running_index += std::countr_zero(shifted_bitsi);
+            indices.push_back(running_index);
+            ++running_index;
+            shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
+        }
+    }
+    uint32_t shifted_bitsi = ~(plus[NR_INT32 - 1] | minus[NR_INT32 - 1])
+        & (((uint32_t)1 << NR_REMAINING_BITS) - 1);
+    int running_index = 32 * (NR_INT32 - 1);
+    while (shifted_bitsi) {
+        running_index += std::countr_zero(shifted_bitsi);
+        indices.push_back(running_index);
+        ++running_index;
+        shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
+    }
+    return indices;
+}
+
+template<int L>
+std::vector<int> sign_vector<L>::indices_of_pluses() const {
+    return plus.indices_of_ones();
+}
+
+template<int L>
+std::vector<int> sign_vector<L>::indices_of_minuses() const {
+    return minus.indices_of_ones();
+}
+
+template<int L>
+std::vector<int> sign_vector<L>::indices_of_nonzeros() const {
+    std::vector<int> indices{};
+    for (auto i = 0; i < NR_INT32; ++i) {
+        uint32_t shifted_bitsi = (plus[i] | minus[i]);
+        int running_index = 32 * i;
+        while (shifted_bitsi) {
+            running_index += std::countr_zero(shifted_bitsi);
+            indices.push_back(running_index);
+            ++running_index;
+            shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
+        }
+    }
+    return indices;
 }
 
 template<int L>

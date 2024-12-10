@@ -124,7 +124,10 @@ struct bit_vector {
     constexpr int count_ones() const;
     // Returns the list of indices, in increasing order, at which
     // a `1` is present in the bit-vector.
-    std::vector<int> indices_with_ones() const;
+    std::vector<int> indices_of_ones() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `0` is present in the bit-vector.
+    std::vector<int> indices_of_zeros() const;
     // Returns true if this bitvector contains a 1 wherever
     // the other bitvector also contains a 1.
     constexpr bool bitwise_greater_than(const bit_vector&) const;
@@ -294,6 +297,18 @@ struct sign_vector {
     constexpr bool is_zero() const;
     // Returns the number of nonzero signs in this signvector.
     constexpr int count_nonzero() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `0` is present in the signvector.
+    std::vector<int> indices_of_zeros() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `+` is present in the signvector.
+    std::vector<int> indices_of_pluses() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `-` is present in the signvector.
+    std::vector<int> indices_of_minuses() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `+` or a `-` is present in the signvector.
+    std::vector<int> indices_of_nonzeros() const;
     // Returns true if wherever the other signvector is nonzero,
     // the two signvectors agree.
     constexpr bool signwise_greater_than(const sign_vector&) const;
