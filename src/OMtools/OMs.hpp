@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <array>
+#include <vector>
 #include <utility>
 #include <cstdint>
 #include "mymath.hpp"
@@ -116,6 +118,22 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // rank.
     template<typename Iterable>
     constexpr int rank(const Iterable&, int max_rank = R) const;
+    // Compute the lexicographically first maximal independent subset 
+    // of the given list of elements.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s. If the variable
+    // `max_rank` is specified, than the lexicographically first
+    // independent subset of this size will be returned instead, if 
+    // this exists.
+    template<typename Iterable>
+    constexpr std::vector<char> maximal_independent_subset(const Iterable&, int max_rank=R) const;
+    // Same as `maximal_independent_subset(iterable, rank)`, but returns
+    // a partially filled array of the given size, if it fails to find
+    // an independent subset of such a size. The remaining entries will
+    // be filled with 0.
+    template<int rank, typename Iterable>
+    constexpr std::array<char, rank> maximal_independent_subset_of_rank(const Iterable&) const;
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
@@ -307,6 +325,22 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // rank.
     template<typename Iterable>
     constexpr int rank(const Iterable&, int max_rank=R) const;
+    // Compute the lexicographically first maximal independent subset 
+    // of the given list of elements.
+    //
+    // The type `Iterable` should be iterable with a range-based for 
+    // loop, any number of times, yielding `char`s. If the variable
+    // `max_rank` is specified, than the lexicographically first
+    // independent subset of this size will be returned instead, if 
+    // this exists.
+    template<typename Iterable>
+    constexpr std::vector<char> maximal_independent_subset(const Iterable&, int max_rank=R) const;
+    // Same as `maximal_independent_subset(iterable, rank)`, but returns
+    // a partially filled array of the given size, if it fails to find
+    // an independent subset of such a size. The remaining entries will
+    // be filled with 0.
+    template<int rank, typename Iterable>
+    constexpr std::array<char, rank> maximal_independent_subset_of_rank(const Iterable&) const;
     // Returns whether this chirotope weak maps to the other chirotope.
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given

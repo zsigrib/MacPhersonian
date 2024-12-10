@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <array>
+#include <vector>
 #include "OMs.hpp"
 
 // =======
@@ -86,6 +88,76 @@ constexpr int Matroid<R, N>::rank(const Iterable& elements, int max_rank) const 
 		}
 	}
 	return rank;
+}
+
+template<int R, int N>
+template<typename Iterable>
+constexpr std::vector<char> Matroid<R, N>::maximal_independent_subset(const Iterable& elements, int max_rank) const {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	std::vector<char> maximal_independent_subset_so_far{};
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::bits[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			rank += 1;
+			maximal_independent_subset_so_far.push_back(element);
+			if (rank == max_rank) {
+				return maximal_independent_subset_so_far;
+			}
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return maximal_independent_subset_so_far;
+}
+
+template<int R, int N>
+template<int target_rank, typename Iterable>
+constexpr std::array<char, target_rank> Matroid<R, N>::maximal_independent_subset_of_rank(const Iterable& elements) const {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	std::array<char, target_rank> maximal_independent_subset_so_far{};
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::bits[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			maximal_independent_subset_so_far[rank] = element;
+			rank += 1;
+			if (rank == target_rank) {
+				return maximal_independent_subset_so_far;
+			}
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return maximal_independent_subset_so_far;
 }
 
 template<int R, int N>
@@ -193,6 +265,76 @@ constexpr int Chirotope<R, N>::rank(const Iterable& elements, int max_rank) cons
 		}
 	}
 	return rank;
+}
+
+template<int R, int N>
+template<typename Iterable>
+constexpr std::vector<char> Chirotope<R, N>::maximal_independent_subset(const Iterable& elements, int max_rank) const {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	std::vector<char> maximal_independent_subset_so_far{};
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::plus[i] | BASE::minus[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			rank += 1;
+			maximal_independent_subset_so_far.push_back(element);
+			if (rank == max_rank) {
+				return maximal_independent_subset_so_far;
+			}
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return maximal_independent_subset_so_far;
+}
+
+template<int R, int N>
+template<int target_rank, typename Iterable>
+constexpr std::array<char, target_rank> Chirotope<R, N>::maximal_independent_subset_of_rank(const Iterable& elements) const {
+	int rank = 0;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements;
+	std::array<uint32_t, BASE::NR_INT32> bases_with_selected_elements_and_one;
+	std::array<char, target_rank> maximal_independent_subset_so_far{};
+	for (auto i = 0; i < BASE::NR_INT32; ++i) {
+		bases_with_selected_elements[i] = BASE::plus[i] | BASE::minus[i];
+	}
+	for (char element: elements) {
+		bool is_element_independent_of_selected_elements = false;
+		for (auto i = 0; i < BASE::NR_INT32; ++i) {
+			bases_with_selected_elements_and_one[i] = 
+				bases_with_selected_elements[i]
+				& RTUPLES::LIST::contained_mask32[element][i];
+			is_element_independent_of_selected_elements =
+				is_element_independent_of_selected_elements || 
+				bool(bases_with_selected_elements_and_one[i]);
+		}
+		if (is_element_independent_of_selected_elements) {
+			maximal_independent_subset_so_far[rank] = element;
+			rank += 1;
+			if (rank == target_rank) {
+				return maximal_independent_subset_so_far;
+			}
+			for (auto i = 0; i < BASE::NR_INT32; ++i) {
+				bases_with_selected_elements[i] =
+					bases_with_selected_elements_and_one[i];
+			}
+		}
+	}
+	return maximal_independent_subset_so_far;
 }
 
 template<int R, int N>
