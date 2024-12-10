@@ -21,8 +21,12 @@ struct iterator {
 	// Construct an iterator, pointing to the first `R`-tuple
 	// `(0,1,2,...,R-1)`, inside the set of `R`-tuples in `0..n-1`.
 	constexpr iterator(LabelType n): N(n) {
-		for (LabelType i = 0; i < R; ++i) {
-			current[i] = i;
+		if (N < R) {
+			current[0] = N;
+		} else {
+			for (LabelType i = 0; i < R; ++i) {
+				current[i] = i;
+			}
 		}
 	}
 	// Construct an iterator, pointing to an invalid `R`-tuple,
