@@ -148,4 +148,30 @@ namespace OMexamples {
 
         Chirotope<4,8>("+++++--" "++-++++" "+-----+" "+++--++" "++-++--" "++--+--" "--++---" "-+++++-" "++++-++" "-+++-++")
     };
+
+    // This chirotope illustrates the simplest "isolation" one
+    // can produce. Three rays start from the point `6`, on each
+    // of which (in clockwise order) two distinct (both from each
+    // other and `6`) points are chosen: `(0,1)`, `(2,3)`, `(4,5)`,
+    // such that the point with the larger label is closer to `6`.
+    // Observe that given a realization of the deletion of `6`
+    // from this chirotope, there is not always a realization of
+    // `SIMPLEST_ISOLATION` which extends it.
+    constexpr Chirotope<3,7> SIMPLEST_ISOLATION(
+        "++--0" // (0,1,?)
+        "----" // (0,2,?)
+        "---" // (0,3,?)
+        "++" // (0,4,?)
+        "+" // (0,5,6)
+        "----" // (1,2,?)
+        "---" // (1,3,?)
+        "++" // (1,4,?)
+        "+" // (1,5,6)
+        "++0" // (2,3,?)
+        "--" // (2,4,?)
+        "-" // (2,5,6)
+        "--" // (3,4,?)
+        "-" // (3,5,6)
+        "0" // (4,5,6)
+    );
 }

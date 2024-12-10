@@ -337,21 +337,8 @@ constexpr std::vector<sign_vector<N>> cocircuits(const Chirotope<R, N>& chi) {
     }
     for (int idx = 1; idx < R1TUPLES::NR; ++idx) {
         auto candidate = cocircuit_extractors_from_chirotope<R,N>[idx] * chi;
-        bool seen_before = false;
-        for (auto i = 0; i < (R1TUPLES::LIST::array[idx][R-2] >> 5); ++i) {
-            if (~(candidate.plus[i] | candidate.minus[i] 
-            | R1TUPLES::LIST::char_vector_of_Rtuple[idx][i])) {
-                seen_before = true;
-                break;
-            }
-        }
-        if (N % 32 != 0 && ~(candidate.plus[N_NR_INT32 - 1] 
-        | candidate.minus[N_NR_INT32 - 1] 
-        | R1TUPLES::LIST::char_vector_of_Rtuple[idx][N_NR_INT32 - 1]
-        | (-((uint32_t)1 << ((R1TUPLES::LIST::array[idx][R-2] + 1) & 31))))) {
-            seen_before = true;
-        }
-        if (!seen_before) {
+        if (R1TUPLES::LIST::array[idx] ==
+        chi.template maximal_independent_subset_of_rank<R-1>(candidate.indices_of_zeros())) {
             cocircuits_so_far.push_back(candidate);
         }
     }
