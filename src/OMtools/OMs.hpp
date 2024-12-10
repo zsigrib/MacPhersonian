@@ -17,18 +17,6 @@
 // the given integer; works for 32-bit ints.
 constexpr int count_1bits(uint32_t x);
 
-// Sorts an array of 1-byte signed integers, and returns the 
-// of the permutation applied.
-template<int R, int N>
-constexpr int sort_array(std::array<char, R>&);
-
-// Returns the index of the given `R`-tuple inside
-// `Chirotope<R, N>::RTUPLES::LIST::array`.
-//
-// TODO: move into `NchooseK`
-template<int R, int N>
-constexpr int index_of_Rtuple(const std::array<char, R>&);
-
 //writebits? -> print an integer as a 0-1 sequence
 
 // =============
@@ -118,13 +106,16 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     // The type `Iterable` should be iterable with a range-based for 
     // loop, any number of times, yielding `char`s.
     template<typename Iterable>
-    constexpr bool is_independent(const Iterable&);
+    constexpr bool is_independent(const Iterable&) const;
     // Compute the rank of a subset of elements.
     //
     // The type `Iterable` should be iterable with a range-based for 
-    // loop, any number of times, yielding `char`s.
+    // loop, any number of times, yielding `char`s. If the variable
+    // `max_rank` is specified, than this value will be returned
+    // immediately once it is clear that this subset has at least this
+    // rank.
     template<typename Iterable>
-    constexpr int rank(const Iterable&);
+    constexpr int rank(const Iterable&, int max_rank = R) const;
     // Returns whether this matroid weak maps to the other matroid. This 
     // holds if and only if every basis of the other matroid is also a basis
     // of this matroid.
@@ -306,13 +297,16 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     // The type `Iterable` should be iterable with a range-based for 
     // loop, any number of times, yielding `char`s.
     template<typename Iterable>
-    constexpr bool is_independent(const Iterable&);
+    constexpr bool is_independent(const Iterable&) const;
     // Compute the rank of a subset of elements.
     //
     // The type `Iterable` should be iterable with a range-based for 
-    // loop, any number of times, yielding `char`s.
+    // loop, any number of times, yielding `char`s. If the variable
+    // `max_rank` is specified, than this value will be returned
+    // immediately once it is clear that this subset has at least this
+    // rank.
     template<typename Iterable>
-    constexpr int rank(const Iterable&);
+    constexpr int rank(const Iterable&, int max_rank=R) const;
     // Returns whether this chirotope weak maps to the other chirotope.
     // This happens if for all `R`-tuples the other chirotope being
     // non-zero implies that the two chirotopes are equal on that given
