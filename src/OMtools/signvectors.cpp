@@ -151,16 +151,25 @@ template<int L>
 constexpr int bit_vector<L>::count_ones() const {
     int sum = 0;
     for (auto i = 0; i < NR_INT32; i++) {
-        uint32_t n = bits[i];
-        // Bit magic; n = number of 1s in bits[i] by the end
-        n = (((uint32_t)0xaaaaaaaa & n) >> 1) + ((uint32_t)0x55555555 & n);
-        n = (((uint32_t)0xcccccccc & n) >> 2) + ((uint32_t)0x33333333 & n);
-        n = (((uint32_t)0xf0f0f0f0 & n) >> 4) + ((uint32_t)0x0f0f0f0f & n);
-        n = (((uint32_t)0xff00ff00 & n) >> 8) + ((uint32_t)0x00ff00ff & n);
-        n = (((uint32_t)0xffff0000 & n) >> 16) + ((uint32_t)0x0000ffff & n);
-        sum += n;
+        sum += std::popcount(bits[i]);
     }
     return sum;
+}
+
+template<int L>
+std::vector<int> bit_vector<L>::indices_with_ones() const {
+    std::vector<int> indices{};
+    for (auto i = 0; i < NR_INT32; ++i) {
+        uint32_t shifted_bitsi = bits[i];
+        int running_index = 32 * i;
+        while (shifted_bitsi) {
+            running_index += std::countr_zero(shifted_bitsi);
+            indices.push_back(running_index);
+            ++running_index;
+            shifted_bitsi = shifted_bitsi >> (1 + std::countr_zero(shifted_bitsi));
+        }
+    }
+    return indices;
 }
 
 template<int L>

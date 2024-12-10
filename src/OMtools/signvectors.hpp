@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <vector>
+#include <bit>
 #include "mymath.hpp"
 
 // ==============
@@ -120,6 +122,9 @@ struct bit_vector {
     constexpr bool is_zero() const;
     // Returns the number of 1 bits in this bitvector.
     constexpr int count_ones() const;
+    // Returns the list of indices, in increasing order, at which
+    // a `1` is present in the bit-vector.
+    std::vector<int> indices_with_ones() const;
     // Returns true if this bitvector contains a 1 wherever
     // the other bitvector also contains a 1.
     constexpr bool bitwise_greater_than(const bit_vector&) const;
