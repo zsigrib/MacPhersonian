@@ -1,6 +1,7 @@
-# `Finschi_R_N.txt`
+# `rRnN.txt`
 
-The file `Finschi_R_N.txt` contains a list, with exactly one representative of each isomorphism class of oriented matroids of rank `R` on `N` elements. Two oriented matroids are considered isomorphic if one can be obtained from the other by permuting its elements and/or flipping the sign of some of the elements. Each oriented matroid is represented by a chirotope.
+The file `uniform/rRnN.txt` contains a list, with exactly one representative of each isomorphism class of uniform oriented matroids of rank `R` on `N` elements. Two oriented matroids are considered isomorphic if one can be obtained from the other by permuting its elements and/or flipping the sign of some of the elements. Each oriented matroid is represented by a chirotope.
+Similarly for `all/rRnN.txt`, but those list representatives of not necessarily uniform oriented matroids.
 
 Each column corresponds to a given ordered `R`-tuple of elements in `{1,...,N}` (the digits in the first `R` rows specify this tuple), and each row to a chirotope: the sign written in the row corresponding to $\chi$ and column corresponding to `R`-tuple $(a_1,\ldots,a_R)$ contains the value $\chi(a_1,\ldots,a_n)$.
 
