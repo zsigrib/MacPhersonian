@@ -6,8 +6,9 @@
 namespace Rtuples {
 
 // Iterates over the `R`-element subsets of `0..N-1`
-// (also called `R`-tuples), and returns them as sorted
-// arrays.
+// (also called `R`-tuples) as monotonely increasing
+// `R`-long sequences in `0..N-1` in lexicographic order, 
+// and returns them as sorted arrays.
 //
 // The type `LabelType` should be able to store non-negative
 // integers up to `N`.
@@ -72,6 +73,85 @@ struct iterator {
 		);
 	}
 	constexpr bool operator!=(const iterator& other) {
+		return (N != other.N) || (
+			(current[0] != N || other.current[0] != N) && 
+			(current != other.current)
+		);
+	}
+};
+
+// Iterates over the `R`-element subsets of `0..N-1`
+// (also called `R`-tuples) as monotonely increasing
+// `R`-long sequences in `0..N-1` in "reverse lexicographic 
+// order", and returns them as sorted arrays. In other
+// words if one were to reverse each resulting `R`-tuple
+// to instead be monotonely decreasing, then those
+// `R`-tuples would be lexicographically sorted.
+//
+// The type `LabelType` should be able to store non-negative
+// integers up to `N`.
+template<typename LabelType, LabelType R>
+struct iterator_reverse_lexicographic {
+	// The current `R`-tuple that the iterator is pointing to.
+	std::array<LabelType, R> current;
+	// The number of labels, i.e. an `R`-tuple can contain elements
+	// in `0..N-1`.
+	const LabelType N;
+	// Construct an iterator, pointing to the first `R`-tuple
+	// `(0,1,2,...,R-1)`, inside the set of `R`-tuples in `0..n-1`.
+	constexpr iterator_reverse_lexicographic(LabelType n): N(n) {
+		if (N < R) {
+			current[0] = N;
+		} else {
+			for (LabelType i = 0; i < R; ++i) {
+				current[i] = i;
+			}
+		}
+	}
+	// Construct an iterator, pointing to an invalid `R`-tuple,
+	// consisting solely of `n`s.
+	constexpr iterator_reverse_lexicographic(LabelType n, int): N(n) {
+		current[0] = N;
+	}
+	// Construct an iterator, pointing to the specified `R`-tuple.
+	constexpr iterator_reverse_lexicographic(LabelType n, const std::array<LabelType, R>& target): N(n) {
+		current = target;
+	}
+	// Construct an iterator, pointing to the first `R`-tuple
+	// `(0,1,2,...,R-1)`, inside the set of `R`-tuples in `0..n-1`.
+	constexpr iterator_reverse_lexicographic begin() const {
+		return *this;
+	}
+	// Construct an iterator, pointing to an invalid `R`-tuple, which
+	// signifies the end of the iteration.
+	constexpr iterator_reverse_lexicographic end() const {
+		return iterator_reverse_lexicographic(N,0);
+	}
+	// Return the `R`-tuple this iterator is currently pointing to.
+	constexpr std::array<LabelType,R> operator*() const {
+		return current;
+	}
+	constexpr iterator_reverse_lexicographic& operator++() {
+		LabelType r = 0;
+		while(r < R - 1 && current[r] == current[r+1] - 1)
+			r++;
+		if (r == R - 1 && current[r] >= N-1) {
+			current[0] = N;
+			return *this;
+		}
+		++current[r];
+		for (LabelType i = 0; i < r; ++i) {
+			current[i] = i;
+		}
+		return *this;
+	}
+	constexpr bool operator==(const iterator_reverse_lexicographic& other) {
+		return (N == other.N) && (
+			(current[0] == N && other.current[0] == N) || 
+			(current == other.current)
+		);
+	}
+	constexpr bool operator!=(const iterator_reverse_lexicographic& other) {
 		return (N != other.N) || (
 			(current[0] != N || other.current[0] != N) && 
 			(current != other.current)
