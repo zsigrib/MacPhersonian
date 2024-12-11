@@ -419,6 +419,20 @@ restrict_to_bases(const bit_vector<Chirotope<R, N>::RTUPLES::NR>& bases){
     return {bases};
 } 
 
+template<int R, int N>
+svo::PushForward<sign_vector<binomial_coefficient(N,R)>,Chirotope<R,N>> 
+decode_Finschi_representative{{[]() constexpr{
+    const auto NcR = binomial_coefficient(N, R);
+    std::array<int, NcR> induced{};
+    int idx = 0;
+    for (std::array<char, R> Rtuple: 
+    Rtuples::iterator_reverse_lexicographic<char, R>(N)) {
+        induced[idx] = Chirotope<R,N>::RTUPLES::index_of_ordered(Rtuple);
+        ++idx;
+    }
+    return induced;
+}()}};
+
 }
 
 #include "OMoperations.cpp"

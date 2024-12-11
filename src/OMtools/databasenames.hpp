@@ -32,4 +32,10 @@ std::string matroid_set(int n_bases, int idx) {
     return std::format("../../../resources/matroid_sets/r{0}n{1}/{2}_bases_all.txt", R, N, n_bases);
 } 
 
+template<int R, int N>
+std::string uniform_Finschi = std::format("../../../resources/Finschi_representatives/uniform/r{}n{}.txt", R, N);
+
+template<int R, int N>
+std::string all_Finschi = std::format("../../../resources/Finschi_representatives/all/r{}n{}.txt", R, N);
+
 }
