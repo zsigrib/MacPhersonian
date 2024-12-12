@@ -258,7 +258,8 @@ for (auto p : input) {
     if (top.OM_weak_maps_to(p.second)) {
         count_of_wmi++;
         count_of_wmi_with_fixed_basecount++;
-        all_wmis_by_basecount[p.first - 1].push_back(p.second);
+        auto corrected = top.weak_maps_to(p.second) ? p.second : p.second.inverse();
+        all_wmis_by_basecount[p.first - 1].push_back(corrected);
     }
     // INCREMENT
     total++;
