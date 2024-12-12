@@ -29,21 +29,8 @@ for (Chirotope<3,7> chi: r3n7_representatives) {
     // Quick setup
     auto cocircuits = OM_operations::cocircuits(chi);
     // Slow setup
-    std::cout << "> Computing lower cone of target,...";
-    auto lower_cone_unfiltered = research::filter_lower_cone<3,7>(chi, verboseness::silent);
-    std::cout << " keeping only loopfrees,...";
-    std::vector<Chirotope<3,7>> lower_cone_filtered;
-    int total_size = 0;
-    for (auto wmis_with_fix_basecount: lower_cone_unfiltered) {
-        for(Chirotope<3,7> wmi: wmis_with_fix_basecount) {
-            if (wmi.is_loopfree()) {
-                lower_cone_filtered.push_back(wmi);
-            }
-        }
-        total_size += wmis_with_fix_basecount.size();
-    }
-    std::cout << " kept " << lower_cone_filtered.size() << "/" 
-    << total_size << "\n";
+    std::cout << "Computing lower cone of target...\n";
+    auto lower_cone_filtered = research::loopfree_lower_cone<3,7>(chi, verboseness::result);
     // Check each element if chi can be weakly reduced by it
     weakly_reducible_by_element.push_back(-1);
     for (int e = 0; e < 7; ++e) {
@@ -56,12 +43,12 @@ for (Chirotope<3,7> chi: r3n7_representatives) {
         auto delete_e = OM_operations::delete_element<3,7>(e);
         Chirotope<3,7> deletion =  delete_e(chi);
         std::cout << "    - computing lower cone of M/" << e << " = " << deletion << "...\n";
-        auto lc_of_deletion_unfiltered = research::filter_lower_cone<3,7>(
+        auto lc_of_deletion_unfiltered = research::lower_cone<3,7>(
             deletion, verboseness::silent
         );
         std::cout << "    - keeping only loopfree...";
         std::vector<Chirotope<3,7>> lc_of_deletion_filtered;
-        total_size = 0;
+        int total_size = 0;
         for (auto wmis_with_fix_basecount: lc_of_deletion_unfiltered) {
             for (Chirotope<3,7> wmi: wmis_with_fix_basecount) {
                 bool loopfree_besides_e = true;
