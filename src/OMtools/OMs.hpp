@@ -102,6 +102,8 @@ struct Matroid: public bit_vector<binomial_coefficient(N, R)> {
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this matroid.
     constexpr bool is_coloop(int) const;
+    // Returns whether this matroid is loopfree.
+    constexpr bool is_loopfree() const;
     // Decides whether a subset of elements is independent. The empty
     // set is considered independent.
     //
@@ -310,6 +312,8 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
     constexpr bool is_loop(int) const;
     // Returns whether the given element is a coloop in this chirotope.
     constexpr bool is_coloop(int) const;
+    // Returns whether this chirotope is loopfree.
+    constexpr bool is_loopfree() const;
     // Decides whether a subset of elements is independent.
     //
     // The type `Iterable` should be iterable with a range-based for 

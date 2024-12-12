@@ -43,6 +43,14 @@ constexpr bool Matroid<R, N>::is_coloop(int element) const {
 }
 
 template<int R, int N>
+constexpr bool Matroid<R, N>::is_loopfree() const {
+	for (int e = 0; e < N; ++e) {
+		if (is_loop(e)) return false;
+	}
+	return true;
+}
+
+template<int R, int N>
 template<typename Iterable>
 constexpr bool Matroid<R, N>::is_independent(const Iterable& elements) const {
 	for (auto i = 0; i < BASE::NR_INT32; ++i) {
@@ -215,6 +223,14 @@ constexpr bool Chirotope<R, N>::is_coloop(int element) const {
 	for (auto i = 0; i < BASE::NR_INT32; i++) {
 		if ((BASE::plus[i] | BASE::minus[i]) & ~RTUPLES::LIST::contained_mask32[element][i])
 			return false;
+	}
+	return true;
+}
+
+template<int R, int N>
+constexpr bool Chirotope<R, N>::is_loopfree() const {
+	for (int e = 0; e < N; ++e) {
+		if (is_loop(e)) return false;
 	}
 	return true;
 }
