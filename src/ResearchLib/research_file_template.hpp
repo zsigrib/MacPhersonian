@@ -1,4 +1,5 @@
 #pragma once
+
 #include "verboseness.hpp"
 
 // Namespace for containing all functions which work with

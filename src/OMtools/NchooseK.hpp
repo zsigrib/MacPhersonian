@@ -284,6 +284,7 @@ namespace Rtuples {
 // Nevena's legacy code for managing R-tuples. Sometimes it is
 // slower, sometimes it is faster than the other solutions.
 namespace legacy {
+//NOLINTBEGIN
 
 // Sorts the given array, and returns the sign of the permutation
 // used for sorting. If the array does not consist of distinct 
@@ -964,6 +965,7 @@ constexpr IndexType index_of(const std::array<LabelType, R>& a) {
 	throw std::invalid_argument("We shouldn't have reached this line in legacy::index_of.");
 }
 
+//NOLINTEND
 }
 
 // Given any `R`-tuple of possibly non-distinct and unordered elements,

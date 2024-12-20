@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <array>
 #include "OMs.hpp"
@@ -435,4 +436,4 @@ decode_Finschi_representative{{[]() constexpr{
 
 }
 
-#include "OMoperations.cpp"
+#include "OMoperations_impl.hpp"

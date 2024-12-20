@@ -1,6 +1,9 @@
 #pragma once
+
 #include<type_traits>
 #include <cstdint>
+#include <string>
+#include <stdexcept>
 
 // ====================
 // FORWARD DECLARATIONS

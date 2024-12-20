@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -16,7 +17,7 @@ namespace programs {
 // once the user entered an invalid chirotope, 100000 tests are
 // performed on randomly generated sign-vectors to see that
 // being in the database and `.is_chirotope()` agree on all of them.
-int verify_ischirotope_port() 
+inline int verify_ischirotope_port() 
 {
 constexpr int R0 = 3;
 constexpr int N0 = 6;

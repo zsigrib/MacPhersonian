@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 #include <concepts>
 #include <array>
@@ -620,4 +621,4 @@ struct Compose<PullBack<T1, T2>, PushForward<T0, T1>> {
 
 }
 
-#include "signvectoroperations.cpp"
+#include "signvectoroperations_impl.hpp"

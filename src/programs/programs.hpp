@@ -1,4 +1,5 @@
 #pragma once
+
 #include "program_utility.hpp"
 #include "compute_fvector_of_MacP_using_database.hpp"
 #include "compute_euler_char_of_JRG_mod_3.hpp"

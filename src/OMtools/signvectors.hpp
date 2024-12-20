@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 #include <string>
 #include <iostream>
@@ -349,4 +350,4 @@ struct sign_vector {
     friend std::ifstream& operator>> <>(std::ifstream&, sign_vector&);
 };
 
-#include "signvectors.cpp"
+#include "signvectors_impl.hpp"

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -10,7 +12,7 @@
 // ReadOMDataFromFile
 // ==================
 
-std::ifstream& ignore_n_lines(std::ifstream& fs, size_t ignored_lines) {
+inline std::ifstream& ignore_n_lines(std::ifstream& fs, size_t ignored_lines) {
     std::string ignore_this_str;
     for (auto i = 0; i < ignored_lines; i++) {
         if (!std::getline(fs, ignore_this_str)) {

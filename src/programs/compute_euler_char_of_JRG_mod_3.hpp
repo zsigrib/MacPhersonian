@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include "OMtools.hpp"
@@ -13,7 +14,7 @@ namespace programs {
 // precisely those which are fixed under an action of
 // `Z_3`. The total face vector of the complex of such
 // oriented matroids is also computed.
-int compute_euler_char_of_JRG_mod_3()
+inline int compute_euler_char_of_JRG_mod_3()
 {
 constexpr int R0 = 3;
 constexpr int N0 = 9;

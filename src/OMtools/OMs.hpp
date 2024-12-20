@@ -11,14 +11,6 @@
 #include "NchooseK.hpp"
 #include "signvectors.hpp"
 
-// =======
-// HELPERS 
-// =======
-
-// Counts the number of 1s in the base 2 expansion of
-// the given integer; works for 32-bit ints.
-constexpr int count_1bits(uint32_t x);
-
 //writebits? -> print an integer as a 0-1 sequence
 
 // =============
@@ -405,4 +397,4 @@ struct Chirotope: public sign_vector<binomial_coefficient(N, R)> {
 
 // This file declares templates, so their implementations must
 // be in this same header file as well.
-#include "OMs.cpp"
+#include "OMs_impl.hpp"

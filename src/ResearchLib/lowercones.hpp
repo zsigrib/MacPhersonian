@@ -1,5 +1,5 @@
 #pragma once
-#include <iostream>
+
 #include <vector>
 #include "OMtools.hpp"
 #include "research_file_template.hpp"
@@ -100,10 +100,10 @@ std::vector<Chirotope<R, N>> loopfree_lower_cone(
 template<int R, int N>
 std::vector<Chirotope<R, N>> loopfree_lower_cone(
     const Chirotope<R, N>& top,
-    const std::vector<std::vector<Matroid<R, N>>> matroids,
+    const std::vector<std::vector<Matroid<R, N>>>& matroids,
     enum verboseness verbose = verboseness::result
 );
 
 }
 
-#include "lowercones.cpp"
+#include "lowercones_impl.hpp"

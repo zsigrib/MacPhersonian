@@ -1,4 +1,6 @@
 #pragma once
+
+#include <span>
 #include "OMtools.hpp"
 #include "research_file_template.hpp"
 
@@ -18,7 +20,7 @@ bool constrains(const Chirotope<R, N>&, const sign_vector<N>&, char);
 // If the template parameter `loopfree` is true, it is assumed that
 // the given oriented matroid is loopfree.
 template<int R, int N, bool loopfree=false>
-bool exists_covariant_nonloop(const Chirotope<R, N>&, const std::array<const sign_vector<N>*,R>&, char);
+bool exists_covariant_nonloop(const Chirotope<R, N>&, std::span<const sign_vector<N>*,R>, char);
 
 // Returns whether the given element is isolated by any set of
 // the given cocircuits (allowing sign reversal in said cocircuits)
@@ -40,4 +42,4 @@ bool is_isolated(const Chirotope<R, N>&, std::vector<sign_vector<N>>&, char);
 
 }
 
-#include "isolation.cpp"
+#include "isolation_impl.hpp"

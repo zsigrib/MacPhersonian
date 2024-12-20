@@ -1,22 +1,10 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <array>
 #include <vector>
 #include "OMs.hpp"
-
-// =======
-// HELPERS 
-// =======
-
-constexpr int count_1bits(uint32_t n)
-{
-    n = (((uint32_t)0xaaaaaaaa & n) >> 1) + ((uint32_t)0x55555555 & n);
-    n = (((uint32_t)0xcccccccc & n) >> 2) + ((uint32_t)0x33333333 & n);
-    n = (((uint32_t)0xf0f0f0f0 & n) >> 4) + ((uint32_t)0x0f0f0f0f & n);
-    n = (((uint32_t)0xff00ff00 & n) >> 8) + ((uint32_t)0x00ff00ff & n);
-    n = (((uint32_t)0xffff0000 & n) >> 16) + ((uint32_t)0x0000ffff & n);
-    return n;
-}
 
 // =============
 // Matroid<R, N>
@@ -426,7 +414,7 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 
 	for (k=0;k<BASE::NR_INT32;k++)
 		if (BASE::plus[k] & BASE::minus[k]) 		//if the same basis is both positive and negative
-			return 0;
+			return false;
 	
 
 	for (k=0;k<BASE::NR_INT32;k++)
@@ -434,8 +422,7 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 			break;
 
 	if (k==BASE::NR_INT32)
-		return 0; 						
-
+		return false; 						
 
 	std::array<char,R> x;						//(B2') Lemma 3.5.4
 	std::array<char,R> y;					
@@ -456,24 +443,23 @@ constexpr bool Chirotope<R, N>::is_chirotope() const {
 			mi = BASE::minus[k] & h;		 	//mi!=0 iff \chi(bases[i])=-1
 			if ((pi == 0) && (mi == 0)) 	//\chi(bases[i])=0, we do not have to worry about this basis
 				continue;
-		
+			
 			for (l=k;l<BASE::NR_INT32;l++)
 			{
-				
 				if (l==k)
 					j=i+1;
 				else j=0;
 				if (l==BASE::NR_INT32-1)
 					limit_j=RTUPLES::NR&31;
 				else limit_j=32;
-				for (j;j<limit_j;j++)
-				{
+				for (;j<limit_j;j++)
+				{	
 					h=(uint32_t)1<<j;
 					pj = BASE::plus[l] & h;
 					mj = BASE::minus[l] & h;
 					if (pj == 0 && mj == 0)
 						continue;
-			
+					
 					if ((pi && mj) || (mi && pj)) 		 //\chi(x_1,x_2,x_3)* \chi(y_1,y_2,y_3)=-1
 						sign = -1;
 					else if ((pi && pj) || (mi && mj)) 	 //\chi(x_1,x_2,x_3)* \chi(y_1,y_2,y_3)=1
@@ -512,11 +498,6 @@ constexpr bool Chirotope<R, N>::b2prime(char sign, const std::array<char,R>& X, 
 	int s1,s2,in1,in2,i,j,q,sx,sy;
 	std::array<char,R> x;
 	std::array<char,R> y;
-	if (X[0] == 1 && X[1] == 0 && X[2] == 2
-	&& Y[0] == 0 && Y[1] == 2 && Y[2] == 3) {
-		//std::cout << "!!!\n";
-	}
-		
 
 	// Bálint: what's the point of this?
 	for (i=0;i<R;i++)

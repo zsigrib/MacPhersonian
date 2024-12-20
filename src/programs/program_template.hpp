@@ -1,4 +1,5 @@
 #pragma once
+
 #include "verboseness.hpp"
 
 // A collection of programs relating to my research question.

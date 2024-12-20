@@ -8,3 +8,4 @@ resources/matroid_sets/
 *.c
 *.h
 *.exe
+compile_commands.json

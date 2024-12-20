@@ -1,4 +1,6 @@
 #pragma once
+
+#include <span>
 #include <vector>
 #include "OMtools.hpp"
 #include "research_file_template.hpp"
@@ -26,7 +28,7 @@ bool constrains (const Chirotope<R, N>& chi, const sign_vector<N>& cocircuit, ch
 
 template<int R, int N, bool loopfree>
 bool exists_covariant_nonloop(const Chirotope<R, N>& chi, 
-const std::array<const sign_vector<N>*,R>& cocircuits, char element) {
+std::span<const sign_vector<N>*,R> cocircuits, char element) {
     bit_vector<N> has_no_plus = ~bit_vector<N>();
     bit_vector<N> has_no_minus = ~bit_vector<N>();
     for (auto cocirc_ptr: cocircuits) {

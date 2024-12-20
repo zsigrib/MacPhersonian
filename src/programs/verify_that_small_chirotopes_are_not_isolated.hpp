@@ -1,4 +1,5 @@
 #pragma once
+
 #include "OMtools.hpp"
 #include "OMoperations.hpp"
 #include "isolation.hpp"

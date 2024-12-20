@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -14,7 +15,7 @@ namespace programs {
 // non-isolated, and for which all weak insertion problems
 // (where the smaller OM has no unnecessary loops) are
 // abstractly solvable.
-int prove_r3n7() {
+inline int prove_r3n7() {
 const auto r3n7_representatives = OMexamples::read_all_Finschi_representatives<3,7>();
 std::cout << "Proving the conjecture for (3,7).\n"
 "We iterate over all " << r3n7_representatives.size() 
@@ -84,9 +85,6 @@ for (Chirotope<3,7> chi: r3n7_representatives) {
         std::cout << "    - deleting " << e << " from lower cone of M, "
         "seeing what is hit in the lower cone of M/" << e << "...\n";
         for (Chirotope<3,7> wmi: lower_cone_filtered) {
-            if (wmi == Chirotope<3,7>("++++++++++++0000++++++000+++0000000")) {
-                auto xyz = 7;
-            }
             const Chirotope<3,7> wmi_minus_e = delete_e(wmi);
             if (wmi_minus_e.is_zero()) continue; // e was a coloop!
             // Binary search

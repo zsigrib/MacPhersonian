@@ -1,6 +1,8 @@
 #pragma once
+
 #include <iostream>
 #include <iomanip>
+#include "OMs.hpp"
 #include "program_template.hpp"
 
 namespace programs {

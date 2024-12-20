@@ -1,6 +1,8 @@
 #pragma once
+
 #include <iostream>
 #include "OMtools.hpp"
+#include "researchlib.hpp"
 #include "program_template.hpp"
 
 namespace programs {
