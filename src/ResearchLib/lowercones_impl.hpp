@@ -5,6 +5,7 @@
 #include "OMtools.hpp"
 #include "research_file_template.hpp"
 #include "lowercones.hpp"
+#include "verboseness.hpp"
 
 namespace research {
 
@@ -38,14 +39,19 @@ std::vector<std::vector<Matroid<R, N>>> read_matroids(
         // PARSE
         matroids_by_bases[p.first - 1].push_back(p.second);
     }
-    if (verbose >= verboseness::result) {
+    if (verbose >= verboseness::info) {
         std::cout << "Finished parsing matroids with "
         << last_basecount << " bases. There were " 
         << matroids_by_bases[last_basecount - 1].size()
         << " of them.\n";
     }
-    if (verbose >= verboseness::info) {
-        std::cout << "Finished reading in all matroids.\n";
+    if (verbose >= verboseness::result) {
+        int total = 0;
+        for (auto matroids_with_fixed_basecount: matroids_by_bases) {
+            total += matroids_with_fixed_basecount.size();
+        }
+        std::cout << "Finished reading in all " << total << " matroids"
+        " of rank " << R << " on " << N << " elements.\n"; 
     }
     return matroids_by_bases;
 }
@@ -108,7 +114,7 @@ std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(
         matroids_with_fixed_basecount++;
         total++;
     }
-    if (verbose >= verboseness::result) {
+    if (verbose >= verboseness::checkpoints) {
         std::cout << "Finished parsing matroids with "
         << last_basecount << " bases.\n";
         std::cout << "--- There were " << count_of_wmi_with_fixed_basecount 
@@ -117,7 +123,8 @@ std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(
         << total << " weak map images in total so far.\n";
     }
     if (verbose >= verboseness::info) {
-        std::cout << "Generation of the lower cone of " << top << " is complete.\n";
+        std::cout << "Generation of the lower cone of " << top << " is complete, found "
+        << count_of_wmi << "/" << total << " weak map images.\n";
     }
     return all_wmis_by_basecount;
 }
@@ -247,45 +254,19 @@ std::vector<std::vector<Chirotope<R, N>>> filter_lower_cone(
 }
 
 template<int R, int N>
-std::vector<std::vector<Chirotope<R, N>>> lower_cone(
+std::vector<Chirotope<R, N>> lower_cone_with_few_loops(
     const Chirotope<R, N>& top,
-    enum verboseness verbose
-) {
-    std::ifstream first_file(database_names::OM_set<R, N>(1,0));
-    if (first_file.good()) {
-        return filter_lower_cone(top, verbose);
-    } else {
-        return generate_lower_cone(top, verbose);
-    }
-}
-
-template<int R, int N>
-std::vector<std::vector<Chirotope<R, N>>> lower_cone(
-    const Chirotope<R, N>& top,
-    const std::vector<std::vector<Matroid<R, N>>>& matroids,
-    enum verboseness verbose
-) {
-    std::ifstream first_file(database_names::OM_set<R,N>(1,0));
-    if (first_file.good()) {
-        return filter_lower_cone(top, verbose);
-    } else {
-        return generate_lower_cone(top, matroids, verbose);
-    }
-}
-
-template<int R, int N>
-std::vector<Chirotope<R, N>> loopfree_lower_cone(
-    const Chirotope<R, N>& top,
+    int max_nr_of_loops,
     enum verboseness verbose
 ) {
     std::vector<Chirotope<R, N>> loopfrees;
     int kept_total = 0;
     int basecount = 1;
     int wmis_total = 0;
-    for (auto wmis_with_fixed_basecount: lower_cone(top, verbose)) {
+    for (auto wmis_with_fixed_basecount: generate_lower_cone<R, N>(top, verbose)) {
         int kept_with_basecount = 0;
         for (Chirotope<R, N> wmi: wmis_with_fixed_basecount) {
-            if (wmi.is_loopfree()) {
+            if (loopcount_at_most(wmi,max_nr_of_loops)) {
                 loopfrees.push_back(wmi);
                 kept_with_basecount++;
                 kept_total++;
@@ -293,31 +274,34 @@ std::vector<Chirotope<R, N>> loopfree_lower_cone(
         }
         if (verbose >= verboseness::checkpoints) {
             std::cout << kept_with_basecount << "/" << wmis_with_fixed_basecount.size()
-            << " weak map images with " << basecount << " bases were loopfree.\n";
+            << " weak map images with " << basecount << " bases had at most "
+            << max_nr_of_loops << " loops.\n";
         }
         basecount++;
         wmis_total += wmis_with_fixed_basecount.size();
     }
     if (verbose >= verboseness::result) {
-        std::cout << kept_total << "/" << wmis_total << " weak map images were loopfree.\n";
+        std::cout << kept_total << "/" << wmis_total << " weak map images had "
+        "at most " << max_nr_of_loops << " loops.\n";
     }
     return loopfrees;
 }
 
 template<int R, int N>
-std::vector<Chirotope<R, N>> loopfree_lower_cone(
+std::vector<Chirotope<R, N>> lower_cone_with_few_loops(
     const Chirotope<R, N>& top,
     const std::vector<std::vector<Matroid<R, N>>>& matroids,
+    int max_nr_of_loops,
     enum verboseness verbose
 ) {
     std::vector<Chirotope<R, N>> loopfrees;
     int kept_total = 0;
     int basecount = 1;
-    int wmis_total = 0;
-    for (auto wmis_with_fixed_basecount: lower_cone(top, matroids, verbose)) {
+    int wmis_total = 0; 
+    for (auto wmis_with_fixed_basecount: generate_lower_cone(top, matroids, verbose)) {
         int kept_with_basecount = 0;
         for (Chirotope<R, N> wmi: wmis_with_fixed_basecount) {
-            if (wmi.is_loopfree()) {
+            if (loopcount_at_most(wmi, max_nr_of_loops)) {
                 loopfrees.push_back(wmi);
                 kept_with_basecount++;
                 kept_total++;
@@ -325,15 +309,59 @@ std::vector<Chirotope<R, N>> loopfree_lower_cone(
         }
         if (verbose >= verboseness::checkpoints) {
             std::cout << kept_with_basecount << "/" << wmis_with_fixed_basecount.size()
-            << " weak map images with " << basecount << " bases were loopfree.\n";
+            << " weak map images with " << basecount << " bases had at most "
+            << max_nr_of_loops << " loops.\n";
         }
         basecount++;
         wmis_total += wmis_with_fixed_basecount.size();
     }
     if (verbose >= verboseness::result) {
-        std::cout << kept_total << "/" << wmis_total << " weak map images were loopfree.\n";
+        std::cout << kept_total << "/" << wmis_total << " weak map images had "
+        "at most " << max_nr_of_loops << " loops.\n";
     }
     return loopfrees;
+}
+
+template<int R, int N>
+std::vector<std::vector<Matroid<R, N>>> matroids_with_few_loops(
+    int max_nr_of_loops,
+    enum verboseness verbose
+) {
+    auto matroids_unfiltered = research::read_matroids<R, N>(verbose);
+    if (verbose >= verboseness::info) {
+        std::cout << "Filtering out matroids which have more than "
+        << max_nr_of_loops << " loops...\n";
+    }
+    int basecount = 1;
+    int total_kept = 0;
+    int total = 0;
+    std::vector<std::vector<Matroid<R, N>>> matroids_filtered;
+    for (auto matroids_with_fixed_bases: matroids_unfiltered) {
+        std::vector<Matroid<R, N>> filtered;
+        for (Matroid<R, N> matroid: matroids_with_fixed_bases) {
+            if (research::loopcount_at_most(
+                matroid, 
+                max_nr_of_loops
+            )) {
+                filtered.push_back(matroid);
+            }
+        }
+        if (verbose >= verboseness::checkpoints) {
+            std::cout << "- for basecount " << basecount
+            << " kept " << filtered.size() << "/" << matroids_with_fixed_bases.size()
+            << "\n";
+        }
+        matroids_filtered.push_back(filtered);
+        total_kept += filtered.size();
+        total += matroids_with_fixed_bases.size();
+        basecount++;
+    }
+    if (verbose >= verboseness::result) {
+        std::cout << "In total, found " << total_kept << "/"
+        << total << " matroids with at most " << max_nr_of_loops
+        << " loops.\n";
+    }
+    return matroids_filtered;
 }
 
 }
