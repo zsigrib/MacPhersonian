@@ -1,7 +1,9 @@
-# Oriented matroid Grassmannians or MacPhersonians
+The description below belongs to the original repo, from which this one was forked. As this fork is significantly rewritten, I will have to write my own proper introduction at a certain point. Sometime later though.
 
-These are the programs that support Chapter 6 of my PhD thesis titled "Grassmannians, measure partitions and waists of spheres".
-
-The folder "Creating all oriented matroids" supports Chapter 6.3 of the thesis and it contains the code that creates all oriented matroids for a given rank and the number of elements. In addition, the lists of all oriented matroids of rank 3 on 6 and 7 elements are given (sorted by the number of bases). Some of the files are split into a few parts, because of their size.
-
-The folder "Finding fixed points" supports Chapter 6.4 of the thesis. It contains the code that gives all fixed oriented matroids under the action of a certain group, and it also contains the output of that code.
+> # Oriented matroid Grassmannians or MacPhersonians
+> 
+> These are the programs that support Chapter 6 of my PhD thesis titled "Grassmannians, measure partitions and waists of spheres".
+> 
+> The folder "Creating all oriented matroids" supports Chapter 6.3 of the thesis and it contains the code that creates all oriented matroids for a given rank and the number of elements. In addition, the lists of all oriented matroids of rank 3 on 6 and 7 elements are given (sorted by the number of bases). Some of the files are split into a few parts, because of their size.
+> 
+> The folder "Finding fixed points" supports Chapter 6.4 of the thesis. It contains the code that gives all fixed oriented matroids under the action of a certain group, and it also contains the output of that code.
