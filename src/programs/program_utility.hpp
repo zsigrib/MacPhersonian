@@ -33,6 +33,21 @@ void print_iterable_of_ints(const Iterable& iter, int spacing=3) {
     }
 }
 
+// Print an iterable producing integers as a horitontal
+// right-adjusted single row table, with column width of
+// `spacing` many characters - excluding the comma.
+template<typename Iterable>
+void print_comma_separated_iterable_of_ints(const Iterable& iter, int spacing=3) {
+    bool first = true;
+    for (auto elem: iter) {
+        if (!first) {
+            std::cout << ",";
+        }
+        first = false;
+        std::cout << std::setw(spacing) << int(elem);
+    }
+}
+
 
 }
 
