@@ -9,7 +9,7 @@
 
 namespace programs {
 
-// This program proves the conjecture for `R` = 3 and 
+// This program proves the conjecture for `R` = 3 and
 // `N` = 7, by checking that all (isomorphism classes) 
 // of simple oriented matroids have an element which is 
 // non-isolated, and for which all weak insertion problems
@@ -31,7 +31,7 @@ for (Chirotope<3,7> chi: r3n7_representatives) {
     auto cocircuits = OM_operations::cocircuits(chi);
     // Slow setup
     std::cout << "Computing lower cone of target...\n";
-    auto lower_cone_filtered = research::loopfree_lower_cone<3,7>(chi, verboseness::result);
+    auto lower_cone_filtered = research::lower_cone_with_few_loops<3,7>(chi, 0, verboseness::result);
     // Check each element if chi can be weakly reduced by it
     weakly_reducible_by_element.push_back(-1);
     for (int e = 0; e < 7; ++e) {
@@ -44,7 +44,7 @@ for (Chirotope<3,7> chi: r3n7_representatives) {
         auto delete_e = OM_operations::delete_element<3,7>(e);
         Chirotope<3,7> deletion =  delete_e(chi);
         std::cout << "    - computing lower cone of M/" << e << " = " << deletion << "...\n";
-        auto lc_of_deletion_unfiltered = research::lower_cone<3,7>(
+        auto lc_of_deletion_unfiltered = research::generate_lower_cone<3,7>(
             deletion, verboseness::silent
         );
         std::cout << "    - keeping only loopfree...";
