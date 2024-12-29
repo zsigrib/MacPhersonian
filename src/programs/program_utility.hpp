@@ -33,7 +33,7 @@ void print_iterable_of_ints(const Iterable& iter, int spacing=3) {
     }
 }
 
-// Print an iterable producing integers as a horitontal
+// Print an iterable producing integers as a horizontal
 // right-adjusted single row table, with column width of
 // `spacing` many characters - excluding the comma.
 template<typename Iterable>
