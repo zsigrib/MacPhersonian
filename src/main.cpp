@@ -8,11 +8,5 @@
 
 int main() 
 {
-    std::vector<Chirotope<4,8>> targets;
-    for (auto c : OMexamples::NON_REALIZABLES) {
-        targets.push_back(c);
-    }
-    return programs::compute_f_vector_of_independent_elements(
-        targets
-    );
+    return programs::always_weakly_abstractly_reducible<3, 8>();
 }
