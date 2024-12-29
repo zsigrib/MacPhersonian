@@ -38,24 +38,14 @@ std::span<const sign_vector<N>*,R> cocircuits, char element) {
         }
     }
     for (auto covariant_element: has_no_plus.indices_of_ones()) {
-        if constexpr (loopfree) {
-            if (covariant_element != element && 
-            !chi.is_loop(covariant_element)) 
-                return true;
-        } else {
-            if (covariant_element != element)
-                return true;
-        }
+        if (covariant_element != element && 
+        (!chi.is_loop(covariant_element) || loopfree)) 
+            return true;
     }
     for (auto covariant_element: has_no_minus.indices_of_ones()) {
-        if constexpr (loopfree) {
-            if (covariant_element != element && 
-            !chi.is_loop(covariant_element)) 
-                return true;
-        } else {
-            if (covariant_element != element)
-                return true;
-        }
+        if (covariant_element != element && 
+        (!chi.is_loop(covariant_element) || loopfree)) 
+            return true;
     }
     return false;
 }
