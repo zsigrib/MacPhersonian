@@ -2,6 +2,7 @@
 
 #include <span>
 #include "OMtools.hpp"
+#include "mymath.hpp"
 #include "research_file_template.hpp"
 
 namespace research {
@@ -39,6 +40,11 @@ bool exists_covariant_nonloop(const Chirotope<R, N>&, std::span<const sign_vecto
 // the given oriented matroid is loopfree.
 template<int R, int N, bool loopfree=false>
 bool is_isolated(const Chirotope<R, N>&, std::vector<sign_vector<N>>&, char);
+
+// If `N < minimum_N_for_isolation`, then it is guaranteed that
+// no weak insertion problem is isolated.
+template<int R>
+constexpr int minimum_N_for_isolation = 1 + division_rounded_up(R*(R-1), R-2);
 
 }
 
