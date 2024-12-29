@@ -39,6 +39,19 @@ constexpr bool Matroid<R, N>::is_loopfree() const {
 }
 
 template<int R, int N>
+constexpr int Matroid<R, N>::loopcount(int max_nr) const {
+	int count = 0;
+	for (int e = 0; e < N; ++e) {
+		if (is_loop(e)) {
+			++count;
+			if (count >= max_nr)
+				return max_nr;
+		}
+	}
+	return count;
+}
+
+template<int R, int N>
 template<typename Iterable>
 constexpr bool Matroid<R, N>::is_independent(const Iterable& elements) const {
 	for (auto i = 0; i < BASE::NR_INT32; ++i) {
@@ -221,6 +234,19 @@ constexpr bool Chirotope<R, N>::is_loopfree() const {
 		if (is_loop(e)) return false;
 	}
 	return true;
+}
+
+template<int R, int N>
+constexpr int Chirotope<R, N>::loopcount(int max_nr) const {
+	int count = 0;
+	for (int e = 0; e < N; ++e) {
+		if (is_loop(e)) {
+			++count;
+			if (count >= max_nr)
+				return max_nr;
+		}
+	}
+	return count;
 }
 
 template<int R, int N>
