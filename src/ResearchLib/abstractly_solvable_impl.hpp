@@ -90,7 +90,7 @@ bool is_always_abstractly_solvabe(
     if (verbose >= verboseness::result) {
         if (not_hit_idx == -1) {
             std::cout << "[SUCCESS] All weak insertion problems of the form (M', "
-            << element << ", M) with M = " << chi << " are abstractly solvable\n\n";
+            << element << ", M) with M = " << chi << " are abstractly solvable\n";
         } else {
             std::cout << "The chirotope " << lc_of_deletion[not_hit_idx]
             << " has no single element extension which is\nsmaller than  " << chi << ".\n";

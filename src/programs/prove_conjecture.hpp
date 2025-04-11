@@ -42,74 +42,14 @@ for (Chirotope<R,N> chi: iso_representatives) {
     // Start announcement
     std::cout << "[TARGET " << idx_of_current_target << "/"
     << iso_representatives.size() << "] " << chi << "\n";
-    // Quick setup
-    auto cocircuits = OM_operations::cocircuits(chi);
-    int loopcount_chi = chi.loopcount();
-    good_wrt_element.push_back(-1);
-    std::array<sign_vector_operations::Multiply_P0<Chirotope<R, N>>,N> deleters;
-    std::vector<bool> not_loop_in_chi;
-    for (int e = 0; e < N; ++e) {
-        deleters[e] = OM_operations::delete_element<R, N>(e);
-        not_loop_in_chi.push_back(!chi.is_loop(e));
-    }
-    // Slow setup
-    std::cout << "Computing lower cone of target... ";
-    auto lower_cone_filtered = research::lower_cone_with_few_loops<R,N>(
-        chi, 
+    
+    good_wrt_element.push_back(research::weakly_reducible_by(
+        chi,
         matroids,
-        N - research::minimum_N_for_not_abstractly_solvable<R>,
-        verboseness::result
-    );
-    // Check each element if chi can be weakly reduced by it
-    for (int e = 0; e < N; ++e) {
-        if (chi.is_loop(e)) {
-            std::cout << "- element " << e << " is a loop\n";
-            continue;
-        }
-        // Test isolatedness
-        bool nonisolated_in_all_relevant_deletions = true;
-        not_loop_in_chi[e] = false; // see reason 4 lines below
-        for (int nr_to_delete = 0; 
-        nr_to_delete <= N - research::minimum_N_for_isolation<R> - loopcount_chi
-            && nonisolated_in_all_relevant_deletions; 
-        ++nr_to_delete) {
-            for (auto to_delete: research::tuple_iterator_on_subset(nr_to_delete,N,not_loop_in_chi)) {
-                Chirotope<R, N> deletion = chi;
-                for (int element_to_delete: to_delete) {
-                    deletion = deleters[element_to_delete](deletion);
-                }
-                auto cocircuits_of_deletion = OM_operations::cocircuits(deletion);
-                if (research::is_isolated(
-                    deletion, 
-                    cocircuits_of_deletion,
-                    e
-                )) {
-                    std::cout << "- element " << e << " is isolated in M\\{";
-                    utility::print_comma_separated_iterable_of_ints(to_delete);
-                    std::cout << "} = " << deletion << "\n";
-                    nonisolated_in_all_relevant_deletions = false;
-                    break;
-                }
-            }
-        }
-        not_loop_in_chi[e] = true;
-        if (!nonisolated_in_all_relevant_deletions) continue;
-        std::cout << "- element " << e << " is NOT isolated!\n";
-        // Set up abstractly solvability check
-        if (research::is_always_abstractly_solvabe(
-            chi,
-            e,
-            lower_cone_filtered,
-            matroids_to_filter_deletion_with
-        )) {
-            good_wrt_element.back() = e;
-            break;
-        }
-    }
-    if (good_wrt_element.back() == -1) {
-        std::cout << "[FAILURE] The chirotope " << chi << " is not good "
-        "with respect to any element.\n\n";
-    }
+        matroids_to_filter_deletion_with,
+        verboseness::info
+    ));
+    std::cout << "\n";
     // Iterate
     idx_of_current_target++;
 }
