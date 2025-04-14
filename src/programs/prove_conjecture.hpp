@@ -1,16 +1,11 @@
 #pragma once
 
-#include <float.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include "OMtools.hpp"
-#include "abstractly_solvable.hpp"
-#include "lowercones.hpp"
 #include "researchlib.hpp"
 #include "program_template.hpp"
-#include "program_utility.hpp"
-#include "verboseness.hpp"
 
 namespace programs {
 

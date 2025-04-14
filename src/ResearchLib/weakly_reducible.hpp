@@ -1,13 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <functional>
-#include "OMs.hpp"
+#include <concepts>
 #include "OMtools.hpp"
 #include "abstractly_solvable.hpp"
-#include "lowercones.hpp"
 #include "research_file_template.hpp"
-#include "verboseness.hpp"
 
 namespace research {
 

@@ -3,15 +3,12 @@
 #include <concepts>
 #include <iostream>
 #include <vector>
-#include <functional>
 #include "OMtools.hpp"
 #include "abstractly_solvable.hpp"
 #include "isolation.hpp"
-#include "lowercones.hpp"
 #include "moreRtuples.hpp"
 #include "program_utility.hpp"
 #include "research_file_template.hpp"
-#include "verboseness.hpp"
 
 namespace research {
 
