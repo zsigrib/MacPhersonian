@@ -174,4 +174,38 @@ namespace OMexamples {
         "-" // (3,5,6)
         "0" // (4,5,6)
     );
+
+    // The Euler characteristic of the lower cone of this oriented
+    // matroid is 10. This is a realizable oriented matroid, see:
+    // ```
+    //  0  1  2  3  4  5  6  7 <- elements of the OM
+    // ------------------------
+    //  0 -1  1 -1  1  0  0  0 <- matrix of realization
+    //  1 -1  0 -1  0  1  0  0 
+    // -1  0  0  1  1  0  1  0 
+    //  1  1  0  0 -1  0  0  1
+    // ```
+    // An alternative matrix, giving also an affine realization is:
+    // ```
+    //  1 -1  0 -1  0  1  0  0 
+    //  1  1 -1  1 -1  1  0  0 
+    // -4 -4  0  0  2  0  0 -1
+    //  1  1  1  1  1  1  1  1
+    // ``` 
+    // Alternatively, an affine realization can be constructed as 
+    // follows. Take a triangle 235, and pick 6 to be on the median
+    // of the triangle connecting the midpoint of 35 to 2. These 
+    // four points determine 6 lines. Pick a vector v not in the
+    // plane of the triangle, and denote by and let A(i) be the
+    // smallest affine subspaces parallel to v and containing i.
+    // Let 0 and 1 be 5-v and 3-v respectively. Take 4 to be the 
+    // intersection of A(2) and 036, and 7 be the intersection of 
+    // A(6) and 014.
+    // 
+    // By "lower cone" we mean the order complex of the subposet of
+    // the MacPhersonian which consists of weak map images of this
+    // OM, themselves not equal to this OM.
+    constexpr Chirotope<4,8> STRANGE_EULER_CHAR(
+        "-----+0++--0++++++00------0++++---00++++++-0+---++00++----0----0++++-+"
+    );
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "OMtools.hpp"
+#include "euler_char_of_lowercones.hpp"
 #include "researchlib.hpp"
 #include "program_template.hpp"
 
@@ -42,6 +43,7 @@ const auto& wmis_by_bases(wmis_precalculated? wmis_by_bases_ : research::generat
 
 std::vector<Chirotope<R, N>> all_wmis;
 std::vector<int> base_counts;
+EulerCharAnalyzer ec_analyzer;
 //std::vector<std::vector<size_t>> smaller_OM_indices;
 std::vector<std::array<size_t, binomial_coefficient(N,R)>> lower_cone_face_vectors;
 int top_basecount = top.countbases();
@@ -49,7 +51,6 @@ for (int b = 0; b < top_basecount; b++) {
     if (verbose >= verboseness::checkpoints) {
         std::cout << "Computing face vectors of OMs with " << b+1 << " bases...\n";
     }
-    size_t non_contr = 0;
     for (auto c : wmis_by_bases[b]) {
         // PARSE
         std::vector<size_t> weak_images = smaller_OMs(
@@ -62,7 +63,7 @@ for (int b = 0; b < top_basecount; b++) {
             lower_cone_face_vectors, weak_images
         );
         auto ec = euler_characteristic<binomial_coefficient(N,R)>(f_vector);
-        if (ec != 1) non_contr++;
+        ec_analyzer.add_entry(ec);
         // PRINT
         for (auto target : targets[b]) {
             if (target.is_same_OM_as(c) && verbose >= verboseness::result) {
@@ -82,10 +83,13 @@ for (int b = 0; b < top_basecount; b++) {
         lower_cone_face_vectors.push_back(f_vector);
     }
     if (verbose >= verboseness::checkpoints) {
-        std::cout << "# of non 1 Euler-characteristic lower cones: "
-        << non_contr << "/" << wmis_by_bases[b].size() << " (# of bases: "
-        << b+1 << ").\n";
+        std::cout << "[" << b+1 << " = # of bases] ";
+        ec_analyzer.end_batch();
     }
+}
+if (verbose < verboseness::checkpoints && verbose >= verboseness::result) {
+    std::cout << "The analysis of Euler characteristics appearing in this lower cone is as follows. ";
+    ec_analyzer.end_batch();
 }
 if (verbose >= verboseness::info) {
     std::cout << "All face vectors computed successfully. Terminating.\n";

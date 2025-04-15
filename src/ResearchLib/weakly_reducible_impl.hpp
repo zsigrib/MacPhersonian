@@ -15,8 +15,6 @@ namespace research {
 // COMMENT: The implementations are all the same, but with a different call
 // to is_always_abstractly_reducible
 
-// TODO: add verboseness conditions, implement different versions of the same function
-
 template<int R, int N, 
 std::invocable<const Chirotope<R, N>&, int, enum verboseness> Function>
 int _weakly_reducible_by(
