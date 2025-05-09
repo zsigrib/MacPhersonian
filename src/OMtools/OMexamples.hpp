@@ -195,12 +195,16 @@ namespace OMexamples {
     // Alternatively, an affine realization can be constructed as 
     // follows. Take a triangle 235, and pick 6 to be on the median
     // of the triangle connecting the midpoint of 35 to 2. These 
-    // four points determine 6 lines. Pick a vector v not in the
-    // plane of the triangle, and denote by and let A(i) be the
-    // smallest affine subspaces parallel to v and containing i.
+    // four points determine six lines. Pick a vector v not in the
+    // plane of the triangle, and denote by A(i) the
+    // smallest affine subspace parallel to v and containing i.
     // Let 0 and 1 be 5-v and 3-v respectively. Take 4 to be the 
     // intersection of A(2) and 036, and 7 be the intersection of 
     // A(6) and 014.
+    //
+    // This chirotope is inverted by the permutation (01)(35), and
+    // so the corresponding oriented matroid is fixed by this 
+    // permutation.
     // 
     // By "lower cone" we mean the order complex of the subposet of
     // the MacPhersonian which consists of weak map images of this

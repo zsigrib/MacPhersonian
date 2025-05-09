@@ -7,3 +7,4 @@
 #include "read_Finschi.hpp"
 #include "abstractly_solvable.hpp"
 #include "weakly_reducible.hpp"
+#include "numerical_invariants.hpp"

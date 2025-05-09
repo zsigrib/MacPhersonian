@@ -10,3 +10,4 @@
 #include "prove_r3n7.hpp"
 #include "prove_conjecture.hpp"
 #include "euler_char_of_lowercones.hpp"
+#include "euler_char_of_uppercones.hpp"

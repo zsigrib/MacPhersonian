@@ -51,6 +51,25 @@ std::vector<size_t> smaller_OMs(
     return indices;
 }
 
+// Return the (decreasing) list of indices of OMs which weak map
+// to (and are not equal to) the OM `bound`. It is assumed that
+// the input list of OMs is in increasing order with respect to
+// the number of bases, which is precomputed in the list `all_basecounts`.
+template<int R, int N>
+std::vector<size_t> bigger_OMs(
+    const std::vector<Chirotope<R, N>>& all_OMs,
+    const std::vector<int>& all_basecounts,
+    const Chirotope<R, N>& bound,
+    int base_count_of_bound
+) {
+    std::vector<size_t> indices;
+    for (long long id = all_OMs.size() - 1; id >= 0; id--) {
+        if (all_basecounts[id] <= base_count_of_bound) break;
+        else if (all_OMs[id].OM_weak_maps_to(bound)) indices.push_back(id);
+    }
+    return indices;
+}
+
 // Given a partially ordered set `P`, for each element the face 
 // vector of the order complex of its strict lower cone, and a 
 // lower set `S` of this poset, this function computes the face 

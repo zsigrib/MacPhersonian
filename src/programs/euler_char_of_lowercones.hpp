@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -25,6 +26,7 @@ private:
     size_t ec_1_in_this_batch = 0;
     size_t ec_2_in_this_batch = 0;
 public:
+    std::string these_are_ecs_of = "lower cones";
     void add_entry(long long ec) {
         ec_batch.push_back(ec);
         switch (ec) {
@@ -46,7 +48,7 @@ public:
         if (ec_batch.size() == 0) {
             std::cout << "This batch of OMs was empty.\n"; return;
         }
-        std::cout << "The lower cones of this batch of " << ec_batch.size()
+        std::cout << "The " << these_are_ecs_of << " of this batch of " << ec_batch.size()
         << " OMs had the following distribution of Euler characteristics:\n";
         std::sort (ec_batch.begin(), ec_batch.end());
         size_t idx_of_start_of_this_euler_char = 0;
@@ -57,7 +59,7 @@ public:
         }
         report_on_1_ec(idx_of_start_of_this_euler_char, ec_batch.size() - 1);
         ecs_processed += ec_batch.size();
-        std::cout << "The number of lower cones of given Euler characteristic in this batch and in total so far are:\n";
+        std::cout << "The number of " << these_are_ecs_of << " of given Euler characteristic in this batch and in total so far are:\n";
         utility::ArrayFormatter array_formatter;
         array_formatter.add_cell(std::string("Euler characteristic:"), utility::ArrayFormatter::LEFT);
         array_formatter.add_cell(0);
@@ -125,9 +127,7 @@ auto input = ReadOMDataFromFiles<Chirotope<R,N>>(
 
 std::vector<Chirotope<R,N>> all_OMs;
 std::vector<int> base_counts;
-std::vector<std::vector<size_t>> smaller_OM_indices;
 std::vector<std::array<size_t, binomial_coefficient(N,R)>> lower_cone_face_vectors;
-size_t id = 0;
 EulerCharAnalyzer ec_analyzer;
 int current_basecount = 1;
 for (auto p: input) {
@@ -154,11 +154,7 @@ for (auto p: input) {
     ec_analyzer.add_entry(ec);
     // Save results:
     all_OMs.push_back(p.second);
-    base_counts.push_back(p.first);
-    smaller_OM_indices.push_back(weak_images);
     lower_cone_face_vectors.push_back(fvector);
-    // Increment
-    id++;
 }
 std::cout << "[" << current_basecount << "] Finished parsing OMs with " 
 << current_basecount << " bases. ";
