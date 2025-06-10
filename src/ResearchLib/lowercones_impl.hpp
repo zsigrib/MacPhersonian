@@ -61,8 +61,8 @@ std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(
     const Chirotope<R, N>& top, 
     enum verboseness verbose
 ) {
-    if (!top.is_chirotope())
-        throw std::invalid_argument("ERROR: top is not a chirotope.");
+    if (!top.is_chirotope() && verbose >= verboseness::info)
+        std::cout << "[WARNING] top is not a chirotope.\n";
     std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
         binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
     );
@@ -84,7 +84,8 @@ std::vector<std::vector<Chirotope<R,N>>> generate_lower_cone(
                 std::cout << "We have exhausted all basecounts smaller than"
                 " top's basecount (" << top_basecount << ").\n";
             }
-            all_wmis_by_basecount[top_basecount - 1].push_back(top);
+            if (top.is_chirotope())
+                all_wmis_by_basecount[top_basecount - 1].push_back(top);
             break;
         }
         // PRINT
@@ -135,8 +136,8 @@ std::vector<std::vector<Chirotope<R, N>>> generate_lower_cone(
     const std::vector<std::vector<Matroid<R, N>>>& matroids,
     enum verboseness verbose
 ) {
-    if (!top.is_chirotope())
-        throw std::invalid_argument("ERROR: top is not a chirotope.");
+    if (!top.is_chirotope() && verbose >= verboseness::info)
+        std::cout << "[WARNING] top is not a chirotope.\n";
     if (verbose >= verboseness::info) {
         std::cout << "Generating lower cone of " << top << 
         ", given the set of appropriate matroids...\n";
@@ -170,7 +171,8 @@ std::vector<std::vector<Chirotope<R, N>>> generate_lower_cone(
             << total << " weak map images in total so far.\n";
         }
     }
-    all_wmis_by_bases[top_basecount - 1].push_back(top);
+    if (top.is_chirotope()) 
+        all_wmis_by_bases[top_basecount - 1].push_back(top);
     if (verbose >= verboseness::info) {
         std::cout << "Generation of the lower cone of "
         << top << " is complete; we have checked all relevant basecounts.\n";
@@ -183,8 +185,8 @@ std::vector<std::vector<Chirotope<R, N>>> filter_lower_cone(
     const Chirotope<R, N>& top,
     enum verboseness verbose
 ) {
-    if (!top.is_chirotope())
-        throw std::invalid_argument("ERROR: top is not a chirotope.");
+    if (!top.is_chirotope() && verbose >= verboseness::info)
+        std::cout << "[WARNING] top is not a chirotope.\n";
 
     std::vector<std::vector<Chirotope<R,N>>> all_wmis_by_basecount(
         binomial_coefficient(N, R), std::vector<Chirotope<R,N>>()
@@ -211,7 +213,8 @@ std::vector<std::vector<Chirotope<R, N>>> filter_lower_cone(
                 std::cout << "Finished with exhausting all basecounts smaller than"
                 " top's basecount (" << top_basecount << ").\n";
             }
-            all_wmis_by_basecount[top_basecount - 1].push_back(top);
+            if (top.is_chirotope()) 
+                all_wmis_by_basecount[top_basecount - 1].push_back(top);
             break;
         }
         // PRINT
