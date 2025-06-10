@@ -4,6 +4,7 @@
 #include <vector>
 #include "OMtools.hpp"
 #include "euler_char_of_lowercones.hpp"
+#include "ordercomplexes.hpp"
 #include "researchlib.hpp"
 #include "program_template.hpp"
 
@@ -92,7 +93,16 @@ if (verbose < verboseness::checkpoints && verbose >= verboseness::result) {
     ec_analyzer.end_batch();
 }
 if (verbose >= verboseness::info) {
-    std::cout << "All face vectors computed successfully. Terminating.\n";
+    auto f_vector = face_vector<binomial_coefficient(N,R)>(lower_cone_face_vectors);
+    std::cout << "All face vectors computed successfully. ";
+    std::cout << "The total face vector of the lower cone was ("
+    << f_vector[0];
+    for (auto d = 1; d < binomial_coefficient(N,R); d++) {
+        std::cout << ", " << f_vector[d];
+    }
+    std::cout << "), which has Euler characteristic " <<
+    euler_characteristic<binomial_coefficient(N,R)>(f_vector)
+    << "\nTerminating.\n";
 }
 return 0;
 
