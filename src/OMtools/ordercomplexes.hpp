@@ -4,6 +4,21 @@
 #include <array>
 #include "OMs.hpp"
 
+template<int L>
+inline bool less_than(const bit_vector<L>& v1, const bit_vector<L>& v2) {
+    return v1 <= v2;
+}
+
+template<int R, int N>
+inline bool is_OM_weak_map(const Chirotope<R, N>& from, const Chirotope<R, N>& to) {
+    return from.OM_weak_maps_to(to);
+}
+
+template<int R, int N>
+inline bool is_OM_weak_map_of(const Chirotope<R, N>& chi, const Chirotope<R, N>& of) {
+    return of.OM_weak_maps_to(chi);
+}
+
 // Computes the Euler-characteristic associated to an f-vector.
 template<int dim_bound>
 long long euler_characteristic(const std::array<size_t, dim_bound>& f_vector) {
