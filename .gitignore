@@ -2,10 +2,10 @@
 __pycache__/
 out/
 .vscode/
+.clangd
 # Data files too large to commit
 resources/matroid_sets/
 # Legacy files, exes:
 *.c
 *.h
 *.exe
-compile_commands.json

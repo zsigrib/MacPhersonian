@@ -8,9 +8,9 @@ from scipy.special import comb
 from pathlib import Path
 import os.path
 
-INPUT = "resources\\matroid_sets\\matroids09_bases"
+INPUT = Path("resources") / "matroid_sets" / "matroids09_bases" # make sure this file is available; get it from https://research-repository.uwa.edu.au/en/datasets/matroids-on-9-elements
 UPDATE_FREQUENCY = timedelta(seconds=3)
-CUTOFF = (2,2)
+CUTOFF = (4,9) # (rank, number of elements) : matroids of larger rank OR this rank and at least this many elements will not get processed
 
 def timeprint(string: str):
     print(f"[{datetime.now()}] {string}")
@@ -85,7 +85,7 @@ def write_char_vectors_to_files(database: pd.DataFrame, verbose=True):
     `0-1` sequence, into the file `resources\\matroid_sets\\r{R}n{N}\\{b}_bases_representatives.txt`."""
     if verbose: timeprint("Writing characteristic vectors to files...")
     for R, N, b, matroids in iterate_over_matroid_batches(database):
-        path = Path(f"resources\\matroid_sets\\r{R}n{N}\\{b}_bases_representatives.txt")
+        path = Path("resources") / "matroid_sets" / f"r{R}n{N}" / f"{b}_bases_representatives.txt"
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             f.writelines(f"{idx}:{cv}\n" for idx, cv in zip(matroids['id'],matroids["char_vector"]))
@@ -151,7 +151,7 @@ def generate_all_matroids(database: pd.DataFrame, verbose=True):
     the file `resources\\matroid_sets\\r{R}n{N}\\{b}_bases_all.txt`."""
     if verbose: timeprint("Generating all matroids...")
     for R, N, b, matroids in iterate_over_matroid_batches(database, verbose):
-        path = Path(f"resources\\matroid_sets\\r{R}n{N}\\{b}_bases_all.txt")
+        path = Path("resources") / "matroid_sets" / f"r{R}n{N}" / f"{b}_bases_all.txt"
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, 'w') as f:
             for cv in generate_permuted_matroids(R, N, matroids['char_vector']):
