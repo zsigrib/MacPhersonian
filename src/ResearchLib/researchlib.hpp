@@ -8,3 +8,4 @@
 #include "abstractly_solvable.hpp"
 #include "weakly_reducible.hpp"
 #include "numerical_invariants.hpp"
+#include "contractibility.hpp"
